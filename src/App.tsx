@@ -236,11 +236,18 @@ export default function App() {
   };
 
   const handleSavePrices = async () => {
-    if (!user) return;
-    try {
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'precios'), editPrices);
-      setModalConfig({ isOpen: true, type: 'success', title: 'Precios Actualizados', message: 'Los precios de costo se han guardado correctamente.', inputValue: '', onConfirm: null });
-    } catch (err) { console.error(err); }
+    // 1. Actualizamos el precio en el sistema al instante para calcular el pedido
+    setFuelPrices(editPrices);
+    
+    // 2. Mostramos tu cartel de éxito
+    setModalConfig({ isOpen: true, type: 'success', title: 'Precios Actualizados', message: 'Los precios de costo se han guardado correctamente.', inputValue: '', onConfirm: null });
+    
+    // 3. Enviamos el dato a la nube de fondo
+    if (user) {
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'precios'), editPrices);
+      } catch (err) { console.error(err); }
+    }
   };
 
   // ==========================================
