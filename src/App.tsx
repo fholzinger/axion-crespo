@@ -100,7 +100,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('varillas'); 
   const [user, setUser] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  
+  const [isAppUnlocked, setIsAppUnlocked] = useState(false);
+    const [appPinInput, setAppPinInput] = useState('');
   // ==========================================
   // ESTADOS PRINCIPALES 
   // ==========================================
@@ -478,6 +479,35 @@ export default function App() {
           <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
           <h2 className="text-xl font-bold text-slate-800">Conectando...</h2>
           <p className="text-slate-500 text-center mt-2 text-sm">Rescatando información previa y sincronizando la estación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // PANTALLA DE BLOQUEO GLOBAL (NUEVA)
+  // ==========================================
+  if (!isAppUnlocked) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full animate-in zoom-in-95 duration-300">
+          <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-6">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Estación Axion</h2>
+          <p className="text-slate-500 text-center mb-6 text-sm">Ingrese el PIN de equipo para operar.</p>
+          
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            // AQUÍ ABAJO PUEDES CAMBIAR EL '6227' POR EL CÓDIGO QUE QUIERAS DARLE A TUS PLAYEROS
+            if (appPinInput === '6227') setIsAppUnlocked(true); 
+            else { alert('PIN Incorrecto. Acceso denegado.'); setAppPinInput(''); }
+          }} className="w-full space-y-4">
+            <input type="password" value={appPinInput} onChange={(e) => setAppPinInput(e.target.value)} placeholder="PIN de acceso" className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-center tracking-widest text-lg" autoFocus />
+            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg">
+              Desbloquear Sistema
+            </button>
+          </form>
         </div>
       </div>
     );
