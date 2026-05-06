@@ -514,7 +514,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full animate-in zoom-in-95 duration-300">
         <img src="/logo.png" alt="Axion Crespo" className="h-32 w-auto mb-6 object-contain" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Estación Axion</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">AXION energy Crespo</h2>
           <p className="text-slate-500 text-center mb-6 text-sm">Ingrese el PIN de equipo para operar.</p>
           
           <form onSubmit={(e) => {
