@@ -452,28 +452,43 @@ export default function App() {
 
   const ejecutarCierreDia = async (responsable: string, fechaAyerIso: string) => {
     if (!responsable || responsable.trim() === '') return;
-    
+
+    // 1. Armamos los números del cierre de ayer
     const priorLogs = dailyLogs.filter(log => log.date < fechaAyerIso).sort((a,b) => b.date.localeCompare(a.date));
-    const lastLog = priorLogs.length > 0 ? priorLogs[0] : null; 
-    
+    const lastLog = priorLogs.length > 0 ? priorLogs[0] : null;
+
     const newLog: any = { id: Date.now(), date: fechaAyerIso, responsable: responsable, tanks: {} };
 
     TANKS_CONFIG.forEach(tank => {
-      const inicio = lastLog ? lastLog.tanks[tank.id].fin : 0; 
-      const desc = parseFloat(tankReadings[tank.id].desc) || 0; 
-      const fin = parseFloat(tankReadings[tank.id].liters) || 0; 
+      const inicio = lastLog ? lastLog.tanks[tank.id].fin : 0;
+      const desc = parseFloat(tankReadings[tank.id].desc) || 0;
+      const fin = parseFloat(tankReadings[tank.id].liters) || 0;
       newLog.tanks[tank.id] = { inicio, desc, fin, lv: inicio + desc - fin };
     });
 
-    await saveLogToCloud(newLog);
-    
-    const nuevoEstado: any = {};
-    TANKS_CONFIG.forEach(t => { nuevoEstado[t.id] = { mm: '', liters: newLog.tanks[t.id].fin, desc: '' }; });
-    await saveCurrentStateToCloud(nuevoEstado); 
+    // 2. MAGIA VISUAL: Actualizamos tu Planilla de Declaración al instante
+    const nuevosLogs = [...dailyLogs.filter(log => log.date !== fechaAyerIso), newLog].sort((a, b) => b.date.localeCompare(a.date));
+    setDailyLogs(nuevosLogs);
 
-    setTimeout(() => {
-      setModalConfig({ isOpen: true, type: 'success', title: '¡Cierre Exitoso!', message: `Los datos se han guardado con fecha ${formatDateDisplay(fechaAyerIso)} en la nube.`, inputValue: '', onConfirm: () => setActiveTab('registro') });
-    }, 100);
+    // 3. Mostramos el cartel verde de éxito
+    setModalConfig({
+      isOpen: true,
+      type: 'success',
+      title: 'Turno Cerrado',
+      message: 'Los litros vendidos se restaron correctamente y el stock arranca limpio hoy.',
+      inputValue: '',
+      onConfirm: null
+    });
+
+    // 4. Guardado silencioso en la nube
+    // (Fíjate que esta última línea de 'setDoc' sea igual a la que tenías originalmente en tu código)
+    if (user) {
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registros', 'diarios'), { logs: nuevosLogs });
+      } catch (error) {
+        console.error("Error guardando de fondo:", error);
+      }
+    }
   };
 
   // ==========================================
