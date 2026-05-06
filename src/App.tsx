@@ -963,7 +963,8 @@ export default function App() {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       {TANKS_CONFIG.map(tank => {
-                        const lastLog = dailyLogs.length > 0 ? dailyLogs[dailyLogs.length - 1] : null;
+                        const sortedLogs = [...dailyLogs].sort((a, b) => b.date.localeCompare(a.date));
+                        const lastLog = sortedLogs.length > 0 ? sortedLogs[0] : null;
                         const inicio = lastLog ? lastLog.tanks[tank.id].fin : 0;
                         const descHoy = parseFloat(tankReadings[tank.id].desc) || 0;
                         const currentStock = inicio + descHoy;
