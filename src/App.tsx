@@ -521,12 +521,13 @@ export default function App() {
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            // AQUÍ ABAJO PUEDES CAMBIAR EL '6227' POR EL CÓDIGO QUE QUIERAS DARLE A TUS PLAYEROS
-            if (appPinInput === '6227') { 
-              setIsAppUnlocked(true); 
-              setUser({ rol: 'gerencia' }); 
+            if (appPinInput === '6227') {
+              setIsAppUnlocked(true);
+              setUser({ rol: 'gerencia' });
+            } else { 
+              alert('PIN Incorrecto. Acceso denegado.'); 
+              setAppPinInput(''); 
             }
-            else { alert('PIN Incorrecto. Acceso denegado.'); setAppPinInput(''); }
           }} className="w-full space-y-4">
             <input type="password" value={appPinInput} onChange={(e) => setAppPinInput(e.target.value)} placeholder="PIN de acceso" className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-bold text-center tracking-widest text-lg" autoFocus />
             <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg">
