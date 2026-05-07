@@ -43,32 +43,13 @@ const calcularLitros = (tankId: string, mm: number): number => {
 };
 
 // ==========================================
-// CONFIGURACIÓN SPOT!
+// CONFIGURACIÓN AXION
 // ==========================================
-const SPOT_TEAM = ['Tatiana Walter', 'Fiorella Zapata', 'Cintia Chiappesoni'];
-const SPOT_TURNOS = ['Mañana', 'Tarde'];
-
-// ==========================================
-// FIREBASE CONFIG
-// ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyCAUGdQVkpbRK0udGv8iHAN-9Qf3GEDBWw",
-  authDomain: "axion-crespo.firebaseapp.com",
-  projectId: "axion-crespo",
-  storageBucket: "axion-crespo.firebasestorage.app",
-  messagingSenderId: "1023938369376",
-  appId: "1:1023938369376:web:917b29b40e4062d2ebf005"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = "mi-estacion-crespo"; 
-
 const FUEL_TYPES = {
-  super: { id: 'super', name: 'Súper', defaultPrice: 1000, color: 'bg-sky-400', hover: 'hover:bg-sky-500' },
-  quantium_nafta: { id: 'quantium_nafta', name: 'Quantium N.', defaultPrice: 1200, color: 'bg-violet-400', hover: 'hover:bg-violet-500' },
-  x10: { id: 'x10', name: 'X10', defaultPrice: 1050, color: 'bg-orange-500', hover: 'hover:bg-orange-600' },
-  quantium_diesel: { id: 'quantium_diesel', name: 'Quantium D.', defaultPrice: 1250, color: 'bg-slate-400', hover: 'hover:bg-slate-500' }
+  super: { id: 'super', name: 'Súper', defaultPrice: 1000, color: 'bg-sky-400' },
+  quantium_nafta: { id: 'quantium_nafta', name: 'Quantium N.', defaultPrice: 1200, color: 'bg-violet-400' },
+  x10: { id: 'x10', name: 'X10', defaultPrice: 1050, color: 'bg-orange-500' },
+  quantium_diesel: { id: 'quantium_diesel', name: 'Quantium D.', defaultPrice: 1250, color: 'bg-slate-400' }
 };
 
 const TANKS_CONFIG = [
@@ -81,100 +62,42 @@ const TANKS_CONFIG = [
   { id: 't10', name: 'T10 (Quantium D)', maxLiters: 9500, diameterMm: 1500, color: 'bg-slate-400', fuel: 'quantium_diesel' }
 ];
 
-const CAMIONES_CONFIG = {
-  estandar: [
-    { id: 'C1', max: 8000, min: 6800 }, { id: 'C2', max: 8000, min: 6200 }, { id: 'C3', max: 6000, min: 5200 },
-    { id: 'C4', max: 6000, min: 5200 }, { id: 'C5', max: 6000, min: 5200 }, { id: 'C6', max: 6000, min: 5200 },
-    { id: 'C7', max: 8000, min: 6800 }
-  ],
-  chico: [
-    { id: 'C1', max: 8000, min: 6800 }, { id: 'C2', max: 7000, min: 5950 }, { id: 'C3', max: 5900, min: 5015 },
-    { id: 'C4', max: 4900, min: 4165 }, { id: 'C5', max: 6000, min: 5100 }, { id: 'C6', max: 7900, min: 6715 }
-  ]
-};
-
-const DATOS_HISTORICOS = [
-  { id: 1714348800000, date: '2026-04-29', responsable: 'Sistema', tanks: { t12: { inicio: 6156, desc: 0, fin: 6156, lv: 0 }, t13: { inicio: 9853, desc: 0, fin: 9853, lv: 0 }, t14: { inicio: 1422, desc: 0, fin: 1422, lv: 0 }, t15: { inicio: 5931, desc: 0, fin: 5931, lv: 0 }, t8: { inicio: 100, desc: 0, fin: 100, lv: 0 }, t9: { inicio: 806, desc: 0, fin: 806, lv: 0 }, t10: { inicio: 242, desc: 0, fin: 242, lv: 0 } } },
-  { id: 1714780800000, date: '2026-05-04', responsable: 'Céspedes D.', tanks: { t12: { inicio: 7690, desc: 23938, fin: 22813, lv: 8815 }, t13: { inicio: 2528, desc: 5056, fin: 6709, lv: 875 }, t14: { inicio: 9244, desc: 10410, fin: 7960, lv: 11694 }, t15: { inicio: 1468, desc: 5231, fin: 5700, lv: 999 }, t8: { inicio: 1893, desc: 0, fin: 451, lv: 1442 }, t9: { inicio: 806, desc: 0, fin: 806, lv: 0 }, t10: { inicio: 185, desc: 0, fin: 185, lv: 0 } } }
-];
-
-const STOCK_INICIAL_AL_DIA_ACTUAL = TANKS_CONFIG.reduce((acc, tank) => {
-  acc[tank.id] = { mm: '', liters: 0, desc: '' };
-  return acc;
-}, {} as any);
-
-const MONTH_NAMES: any = { '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril', '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto', '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre' };
-
-const getYesterdayISOString = () => {
-  const today = new Date(); const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-  const yyyy = yesterday.getFullYear(); const mm = String(yesterday.getMonth() + 1).padStart(2, '0'); const dd = String(yesterday.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+const firebaseConfig = {
+  apiKey: "AIzaSyCAUGdQVkpbRK0udGv8iHAN-9Qf3GEDBWw",
+  authDomain: "axion-crespo.firebaseapp.com",
+  projectId: "axion-crespo",
+  storageBucket: "axion-crespo.firebasestorage.app",
+  messagingSenderId: "1023938369376",
+  appId: "1:1023938369376:web:917b29b40e4062d2ebf005"
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('varillas'); 
-  const [user, setUser] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isAppUnlocked, setIsAppUnlocked] = useState(false);
   const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null);
+  const [activeTab, setActiveTab] = useState('varillas');
   const [appPinInput, setAppPinInput] = useState('');
-  
-  const [tankReadings, setTankReadings] = useState<any>(STOCK_INICIAL_AL_DIA_ACTUAL);
-  const [dailyLogs, setDailyLogs] = useState<any[]>(DATOS_HISTORICOS); 
-  const [selectedTruck, setSelectedTruck] = useState<'estandar' | 'chico'>('estandar');
-  const currentCisterns = CAMIONES_CONFIG[selectedTruck];
-  const initialOrdersState = TANKS_CONFIG.reduce((acc, tank) => { acc[tank.id] = []; return acc; }, {} as any);
-  const [tankOrders, setTankOrders] = useState<any>(initialOrdersState);
-  const initialPrices = { super: 1000, quantium_nafta: 1200, x10: 1050, quantium_diesel: 1250 };
-  const [fuelPrices, setFuelPrices] = useState<any>(initialPrices);
-  const [editPrices, setEditPrices] = useState<any>(initialPrices);
-  const [manualEdit, setManualEdit] = useState<any>({ isOpen: false, id: null, date: getYesterdayISOString(), responsable: 'Gerencia (Ajuste)', tanks: TANKS_CONFIG.reduce((acc, t) => ({ ...acc, [t.id]: { inicio: '', desc: '', fin: '' } }), {}) });
-  const [isAdmin, setIsAdmin] = useState(false); 
-  const [pinInput, setPinInput] = useState('');
-  const [modalConfig, setModalConfig] = useState<any>({ isOpen: false, type: 'info', title: '', message: '', inputValue: '', onConfirm: null });
-
-  const closeModal = () => setModalConfig((prev: any) => ({ ...prev, isOpen: false }));
-  const handleModalConfirm = () => { if (modalConfig.onConfirm) modalConfig.onConfirm(modalConfig.inputValue); closeModal(); };
+  const [tankReadings, setTankReadings] = useState<any>(TANKS_CONFIG.reduce((acc, t) => ({...acc, [t.id]: {mm: '', liters: 0}}), {}));
+  const [dailyLogs, setDailyLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    const fallbackTimer = setTimeout(() => setIsInitializing(false), 3000);
-    signInAnonymously(auth).catch(() => setIsInitializing(false));
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => { clearTimeout(fallbackTimer); unsubscribe(); };
+    setTimeout(() => setIsInitializing(false), 2000);
   }, []);
 
-  const handleTankReadingChange = (tankId: string, field: 'mm' | 'liters' | 'desc', value: string) => {
-    setTankReadings(prev => {
+  const handleTankReadingChange = (tankId: string, field: 'mm' | 'liters', value: string) => {
+    setTankReadings((prev: any) => {
       const newReadings = { ...prev };
       newReadings[tankId] = { ...newReadings[tankId], [field]: value };
       if (field === 'mm') {
-        const mmValue = parseFloat(value);
-        const litrosCalculados = calcularLitros(tankId, mmValue);
-        newReadings[tankId].liters = value === '' ? '' : litrosCalculados.toString();
+        newReadings[tankId].liters = value === '' ? '' : calcularLitros(tankId, parseFloat(value));
       }
       return newReadings;
     });
   };
 
-  const handleTankChange = (tankId: string, field: string, value: string) => {
-    setTankReadings(prev => ({ ...prev, [tankId]: { ...prev[tankId], [field]: value } }));
-  };
-
-  const getAssignedTank = (cid: string) => Object.keys(tankOrders).find(tid => tankOrders[tid].includes(cid));
-  const assignCistern = (tid: string, cid: string) => setTankOrders(prev => ({ ...prev, [tid]: [...prev[tid], cid] }));
-  const removeCistern = (tid: string, cid: string) => setTankOrders(prev => ({ ...prev, [tid]: prev[tid].filter(x => x !== cid) }));
-
-  // ==========================================
-  // RENDERIZADO LÓGICO DE PANTALLAS
-  // ==========================================
-
   // 1. CARGANDO
   if (isInitializing) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><Loader2 className="w-12 h-12 text-indigo-500 animate-spin" /></div>;
   }
 
   // 2. PIN DE ACCESO
@@ -182,216 +105,94 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full">
-          <img src="/logo.png" alt="Axion" className="h-24 mb-6 object-contain" />
+          <img src="/logo.png" alt="Axion" className="h-24 mb-6" />
           <h2 className="text-2xl font-bold mb-4">Acceso al Sistema</h2>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            if (appPinInput === '6227') {
-              setIsAppUnlocked(true);
-              setActiveSector(null);
-            } else {
-              alert('PIN Incorrecto');
-              setAppPinInput('');
-            }
-          }} className="w-full space-y-4">
-            <input type="password" value={appPinInput} onChange={(e) => setAppPinInput(e.target.value)} className="w-full p-3 border-2 border-slate-200 rounded-xl text-center text-2xl outline-none focus:border-indigo-500" placeholder="PIN" />
-            <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">Entrar</button>
+          <form onSubmit={(e) => { e.preventDefault(); if (appPinInput === '6227') { setIsAppUnlocked(true); } else { alert('Incorrecto'); setAppPinInput(''); } }} className="w-full space-y-4">
+            <input type="password" value={appPinInput} onChange={(e) => setAppPinInput(e.target.value)} className="w-full p-3 border-2 rounded-xl text-center text-2xl outline-none focus:border-indigo-500" placeholder="PIN" />
+            <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg">Entrar</button>
           </form>
         </div>
       </div>
     );
   }
 
-  // 3. SELECCIÓN DE SECTOR
+  // 3. SELECTOR DE SECTOR
   if (activeSector === null) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <img src="/logo.png" alt="Axion" className="h-20 mb-12" />
-        <h1 className="text-3xl font-bold text-white mb-10 text-center">Seleccione Sector</h1>
+        <h1 className="text-3xl font-bold text-white mb-10">Seleccione Sector</h1>
         <div className="flex flex-col md:flex-row gap-8">
-          <button onClick={() => setActiveSector('playa')} className="bg-indigo-600 p-10 rounded-[40px] text-white font-bold text-3xl flex flex-col items-center gap-6 w-72 shadow-2xl hover:scale-105 transition-transform">
-            <Fuel size={80} /> PLAYA
-          </button>
-          <button onClick={() => setActiveSector('spot')} className="bg-orange-500 p-10 rounded-[40px] text-white font-bold text-3xl flex flex-col items-center gap-6 w-72 shadow-2xl hover:scale-105 transition-transform">
-            <Coffee size={80} /> SPOT!
-          </button>
+          <button onClick={() => setActiveSector('playa')} className="bg-indigo-600 p-10 rounded-[40px] text-white font-bold text-3xl flex flex-col items-center gap-6 w-72 shadow-2xl hover:scale-105 transition-transform"><Fuel size={80} /> PLAYA</button>
+          <button onClick={() => setActiveSector('spot')} className="bg-orange-500 p-10 rounded-[40px] text-white font-bold text-3xl flex flex-col items-center gap-6 w-72 shadow-2xl hover:scale-105 transition-transform"><Coffee size={80} /> SPOT!</button>
         </div>
       </div>
     );
   }
 
-  // 4. MÓDULO SPOT (CONSTRUCCIÓN)
+  // 4. MÓDULO SPOT
   if (activeSector === 'spot') {
     return (
       <div className="min-h-screen bg-slate-50 p-6 flex flex-col items-center justify-center">
         <div className="bg-white p-10 rounded-3xl shadow-xl border-t-8 border-orange-500 text-center max-w-lg">
           <Coffee size={80} className="text-orange-500 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold mb-4 text-slate-800">Bienvenidas al Spot!</h2>
-          <p className="text-slate-600 mb-8 text-xl text-center">Hola Tatiana, Fiorella y Cintia. Estamos preparando su tablero de tareas diarias.</p>
-          <button onClick={() => setActiveSector(null)} className="text-indigo-600 font-bold text-lg">← Volver al inicio</button>
+          <h2 className="text-3xl font-bold mb-4">Bienvenidas al Spot!</h2>
+          <p className="text-slate-600 mb-8">Preparando tablero para Tatiana, Fiorella y Cintia.</p>
+          <button onClick={() => setActiveSector(null)} className="text-indigo-600 font-bold">← Volver al inicio</button>
         </div>
       </div>
     );
   }
 
- // 5. MÓDULO PLAYA (CÁLCULOS Y RENDER)
- if (activeSector === 'playa') {
-  const orderCotization = calcularCostoPedido();
-
+  // 5. MÓDULO PLAYA (Final)
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4 md:p-8 font-sans text-slate-800 relative">
-      
-      {/* MODAL DE MENSAJES Y PROMPTS */}
-      {modalConfig.isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className={`px-6 py-4 border-b flex items-center gap-3 ${modalConfig.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-indigo-50 text-indigo-700'}`}>
-              {modalConfig.type === 'error' ? <AlertTriangle /> : <CheckCircle2 />}
-              <h3 className="font-bold text-lg">{modalConfig.title}</h3>
-            </div>
-            <div className="p-6">
-              <p className="text-slate-600 mb-4 font-medium">{modalConfig.message}</p>
-              {modalConfig.type === 'prompt' && (
-                <input type="text" autoFocus value={modalConfig.inputValue} onChange={(e) => setModalConfig({...modalConfig, inputValue: e.target.value})} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none font-bold" placeholder="Ej. Franco H." />
-              )}
-            </div>
-            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-3">
-              <button onClick={handleModalConfirm} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors">Aceptar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* NAVBAR PRINCIPAL DE PLAYA */}
-      <div className="max-w-7xl w-full mb-6 flex flex-wrap lg:flex-nowrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
-        <button onClick={() => setActiveTab('varillas')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'varillas' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><Ruler className="w-5 h-5" /> 1. Varillado</button>
-        <button onClick={() => setActiveTab('descarga')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'descarga' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><Truck className="w-5 h-5" /> 2. Descarga</button>
-        <button onClick={() => setActiveTab('monitor')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'monitor' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><Database className="w-5 h-5" /> 3. Tanques</button>
-        <button onClick={() => setActiveTab('registro')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'registro' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><CalendarDays className="w-5 h-5" /> 4. Mensual</button>
-        <button onClick={() => setActiveTab('gerencia')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'gerencia' ? 'bg-rose-600 text-white shadow-md' : 'text-rose-600 hover:bg-rose-50'}`}>
-          <Lock className="w-5 h-5" /> 5. Gerencia
-        </button>
-        <button onClick={() => setActiveSector(null)} className="px-4 py-3 bg-slate-100 rounded-xl font-bold text-slate-500 hover:bg-slate-200 border border-slate-200 flex items-center gap-2">
-          <X className="w-4 h-4" /> Salir
-        </button>
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4 font-sans">
+      <div className="max-w-7xl w-full mb-6 flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+        <button onClick={() => setActiveTab('varillas')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold ${activeTab === 'varillas' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}><Ruler size={20}/> 1. Varillado</button>
+        <button onClick={() => setActiveTab('monitor')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold ${activeTab === 'monitor' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}><Database size={20}/> 2. Tanques</button>
+        <button onClick={() => setActiveSector(null)} className="px-4 py-3 text-slate-400 font-bold">Salir</button>
       </div>
 
-      {/* CONTENIDO DINÁMICO */}
       <div className="max-w-7xl w-full">
-        
-        {/* TAB 1: VARILLADO (CON TABLA DE AFORO) */}
         {activeTab === 'varillas' && (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 xl:p-10 max-w-4xl mx-auto animate-in fade-in">
-            <div className="flex items-center gap-3 mb-8 pb-4 border-b">
-              <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl"><Ruler className="w-8 h-8" /></div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-800">Cierre de Día Anterior (Automático)</h1>
-                <p className="text-slate-500 text-sm italic">Los litros se calculan automáticamente con la tabla de calibración.</p>
-              </div>
-            </div>
-            <div className="space-y-4 mb-8">
-              {TANKS_CONFIG.map((tank) => (
-                <div key={tank.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-full sm:w-1/4">
-                    <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${tank.color}`}></div>{tank.name}
-                    </h3>
-                  </div>
-                  <div className="flex-1 grid grid-cols-2 gap-4 w-full text-center">
-                    <div>
-                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Varilla (mm)</label>
-                      <input type="number" value={tankReadings[tank.id].mm} onChange={(e) => handleTankReadingChange(tank.id, 'mm', e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-center font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="mm"/>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Litros Finales</label>
-                      <input type="number" value={tankReadings[tank.id].liters === '' ? '' : Math.round(tankReadings[tank.id].liters)} onChange={(e) => handleTankReadingChange(tank.id, 'liters', e.target.value)} className="w-full p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-center font-bold text-indigo-700" placeholder="L"/>
-                    </div>
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 max-w-4xl mx-auto animate-in fade-in">
+            <h1 className="text-2xl font-bold text-slate-800 mb-6">Cierre (Automático)</h1>
+            <div className="space-y-4">
+              {TANKS_CONFIG.map(tank => (
+                <div key={tank.id} className="p-4 bg-slate-50 rounded-2xl border flex flex-col sm:flex-row items-center gap-4">
+                  <div className="w-full sm:w-1/4 font-bold text-slate-700">{tank.name}</div>
+                  <div className="flex-1 grid grid-cols-2 gap-4 w-full">
+                    <div><label className="block text-[10px] font-bold text-slate-400 uppercase text-center">Varilla (mm)</label><input type="number" value={tankReadings[tank.id].mm} onChange={(e) => handleTankReadingChange(tank.id, 'mm', e.target.value)} className="w-full p-2 border rounded-lg text-center font-bold text-indigo-900" /></div>
+                    <div><label className="block text-[10px] font-bold text-slate-400 uppercase text-center">Litros</label><input type="number" value={tankReadings[tank.id].liters} readOnly className="w-full p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-center font-bold text-indigo-700" /></div>
                   </div>
                 </div>
               ))}
             </div>
-            <button onClick={iniciarCierreDia} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2">
-              <Send className="w-5 h-5" /> Registrar Cierre de Ayer
-            </button>
+            <button className="w-full mt-8 bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg">Registrar Cierre</button>
           </div>
         )}
 
-        {/* TAB 3: MONITOR VISUAL (LOS TANQUES) */}
         {activeTab === 'monitor' && (
-          <div className="bg-slate-800 rounded-3xl shadow-xl p-8 text-white text-center animate-in fade-in">
-            <h1 className="text-2xl font-bold mb-10 flex items-center justify-center gap-3">
-              <Database className="text-emerald-400" /> Monitor de Volumen en Tiempo Real
-            </h1>
-            <div className="flex flex-wrap justify-center items-end gap-6 md:gap-10">
-              {TANKS_CONFIG.map((tank) => {
-                const currentLiters = parseFloat(tankReadings[tank.id].liters) || 0;
-                const percentage = Math.min(100, (currentLiters / tank.maxLiters) * 100);
-                const visualHeight = tank.maxLiters > 20000 ? 'h-64' : 'h-40';
+          <div className="bg-slate-800 rounded-3xl p-8 text-white text-center animate-in fade-in">
+            <h1 className="text-2xl font-bold mb-10">Monitor de Tanques</h1>
+            <div className="flex flex-wrap justify-center items-end gap-10">
+              {TANKS_CONFIG.map(tank => {
+                const liters = tankReadings[tank.id].liters || 0;
+                const percentage = Math.min(100, (liters / tank.maxLiters) * 100);
                 return (
                   <div key={tank.id} className="flex flex-col items-center">
-                    <div className={`text-xs font-bold mb-2 ${percentage < 20 ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
-                      {Math.round(percentage)}%
+                    <div className="text-xs font-bold text-emerald-400 mb-2">{Math.round(percentage)}%</div>
+                    <div className={`w-20 h-48 bg-slate-700 rounded-t-xl relative overflow-hidden border border-slate-600 flex items-end shadow-inner`}>
+                      <div className={`w-full ${tank.color}`} style={{ height: `${percentage}%` }}></div>
                     </div>
-                    <div className={`w-20 ${visualHeight} bg-slate-700 rounded-t-xl relative overflow-hidden border border-slate-600 flex items-end shadow-inner`}>
-                      <div className={`w-full transition-all duration-1000 ${tank.color}`} style={{ height: `${percentage}%` }}>
-                        <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
-                      </div>
-                    </div>
-                    <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{tank.name.replace(/[()]/g, '')}</span>
-                    <span className="text-sm font-black text-white">{Math.round(currentLiters).toLocaleString('es-AR')} L</span>
+                    <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase">{tank.name.replace(/[()]/g, '')}</span>
+                    <span className="text-sm font-black">{Math.round(liters).toLocaleString('es-AR')} L</span>
                   </div>
                 );
               })}
             </div>
           </div>
         )}
-
-        {/* TAB 4: HISTORIAL MENSUAL (LA TABLA) */}
-        {activeTab === 'registro' && (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 animate-in fade-in">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-xl font-bold flex items-center gap-2"><FileText className="text-emerald-600"/> Historial de Declaración</h1>
-              <button onClick={exportarExcel} className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><Download size={16}/> Exportar CSV</button>
-            </div>
-            <div className="overflow-x-auto rounded-xl border">
-              <table className="w-full text-[10px] text-left">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="p-3 font-bold border-r">Fecha</th>
-                    {TANKS_CONFIG.map(t => <th key={t.id} className="p-3 text-center border-r font-bold">{t.name} (LV)</th>)}
-                    <th className="p-3 font-bold">Responsable</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {dailyLogs.map(log => (
-                    <tr key={log.id} className="hover:bg-slate-50">
-                      <td className="p-3 border-r font-medium">{log.date}</td>
-                      {TANKS_CONFIG.map(t => <td key={t.id} className="p-3 text-center border-r font-bold text-indigo-600">{Math.round(log.tanks[t.id].lv)} L</td>)}
-                      <td className="p-3 text-slate-500">{log.responsable}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* MENSAJE PARA TABS NO DESARROLLADOS AÚN EN ESTA VERSIÓN */}
-        {(activeTab === 'descarga' || activeTab === 'gerencia') && (
-          <div className="text-center p-20 bg-white rounded-3xl border border-dashed border-slate-300 text-slate-400">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-slate-600">Sección en mantenimiento</h2>
-            <p>Estamos reconectando esta pestaña a la nueva base de datos del Spot.</p>
-          </div>
-        )}
-
       </div>
     </div>
   );
-}
-
-// CIERRE FINAL DE LA FUNCIÓN APP
-return null;
 }
