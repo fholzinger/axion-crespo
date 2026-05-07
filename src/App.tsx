@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Fuel, Coffee, Database, Ruler, FileText, Truck, Download, Lock, 
-    ShieldAlert, Calculator, X, Send, CheckCircle2, Unlock, Edit3 
+    Fuel, Coffee, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, 
+    Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, 
+    Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, 
+    Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, 
+    Loader2, Calculator, History, Edit3, ChevronRight 
   } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
@@ -41,7 +44,22 @@ const INITIAL_HISTORY = [
 
 export default function App() {
   const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null);
-  const [activeTab, setActiveTab] = useState('varillas');
+  {activeTab === 'descarga' && (
+    <div className="bg-white p-6 rounded-3xl border shadow-sm max-w-4xl mx-auto">
+      <h2 className="text-xl font-bold mb-6 border-b pb-2 text-amber-600 flex items-center gap-2"><Truck size={24} className="mr-2"/> Ingreso de Camión</h2>
+      <div className="space-y-3">
+        {TANKS_CONFIG.map(t => (
+          <div key={t.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border">
+            <div className="w-1/4 font-bold text-slate-600 text-sm">{t.name}</div>
+            <input type="number" value={tankReadings[t.id].desc} onChange={(e) => handleTankReadingChange(t.id, 'desc', e.target.value)} className="flex-1 p-2 border border-amber-200 rounded-lg text-center font-bold text-amber-700" placeholder="Litros de descarga" />
+          </div>
+        ))}
+      </div>
+      <button onClick={confirmarDescarga} className="w-full mt-6 bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition-colors">
+        <CheckCircle2 size={24}/> SUMAR AL MONITOR
+      </button>
+    </div>
+  )}
   const [isAppUnlocked, setIsAppUnlocked] = useState(false);
   const [appPinInput, setAppPinInput] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
