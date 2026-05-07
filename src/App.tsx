@@ -97,10 +97,13 @@ const getYesterdayISOString = () => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
-  export default function App() {
-    const [activeTab, setActiveTab] = useState('varillas'); 
-    const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null); // AGREGAR ESTA LÍNEA
-    const [user, setUser] = useState<any>(null);
+export default function App() {
+  const [activeTab, setActiveTab] = useState('varillas'); 
+  const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null);
+  const [isAppUnlocked, setIsAppUnlocked] = useState(false);
+  const [appPinInput, setAppPinInput] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   
   // ==========================================
   // ESTADOS PRINCIPALES 
