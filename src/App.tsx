@@ -430,7 +430,24 @@ export default function App() {
 
   const guardarDescarga = async () => {
     await saveCurrentStateToCloud(tankReadings);
-    setModalConfig({ isOpen: true, type: 'success', title: 'Descarga Sincronizada', message: 'Los litros del camión se guardaron en la nube y actualizan el stock general al instante.', inputValue: '', onConfirm: () => setActiveTab('monitor') });
+    
+    // Limpiamos SOLO las casillas de descarga después de guardar
+    setTankReadings((prev: any) => {
+      const reset = { ...prev };
+      Object.keys(reset).forEach(k => {
+         reset[k] = { ...reset[k], desc: '' };
+      });
+      return reset;
+    });
+
+    setModalConfig({ 
+      isOpen: true, 
+      type: 'success', 
+      title: 'Descarga Sincronizada', 
+      message: 'Los litros del camión se guardaron en la nube y ya se sumaron al monitor.', 
+      inputValue: '', 
+      onConfirm: () => setActiveTab('monitor') 
+    });
   };
 
   const iniciarCierreDia = () => {
