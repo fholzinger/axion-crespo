@@ -143,7 +143,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isAppUnlocked, setIsAppUnlocked] = useState(false);
-  const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(spot);
+  const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null);
     const [appPinInput, setAppPinInput] = useState('');
   // ==========================================
   // ESTADOS PRINCIPALES 
