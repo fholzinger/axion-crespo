@@ -234,92 +234,164 @@ export default function App() {
     );
   }
 
-  // 5. MÓDULO PLAYA (CÓDIGO ORIGINAL INTEGRADO)
+ // 5. MÓDULO PLAYA (CÁLCULOS Y RENDER)
+ if (activeSector === 'playa') {
+  const orderCotization = calcularCostoPedido();
+
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4 md:p-8 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4 md:p-8 font-sans text-slate-800 relative">
       
-      {/* MODAL DE MENSAJES */}
+      {/* MODAL DE MENSAJES Y PROMPTS */}
       {modalConfig.isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
             <div className={`px-6 py-4 border-b flex items-center gap-3 ${modalConfig.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-indigo-50 text-indigo-700'}`}>
+              {modalConfig.type === 'error' ? <AlertTriangle /> : <CheckCircle2 />}
               <h3 className="font-bold text-lg">{modalConfig.title}</h3>
             </div>
             <div className="p-6">
-              <p className="text-slate-600 mb-4">{modalConfig.message}</p>
+              <p className="text-slate-600 mb-4 font-medium">{modalConfig.message}</p>
               {modalConfig.type === 'prompt' && (
-                <input type="text" autoFocus value={modalConfig.inputValue} onChange={(e) => setModalConfig({...modalConfig, inputValue: e.target.value})} className="w-full px-4 py-3 border-2 rounded-xl" />
+                <input type="text" autoFocus value={modalConfig.inputValue} onChange={(e) => setModalConfig({...modalConfig, inputValue: e.target.value})} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none font-bold" placeholder="Ej. Franco H." />
               )}
             </div>
-            <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-              <button onClick={handleModalConfirm} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg">Aceptar</button>
+            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-3">
+              <button onClick={handleModalConfirm} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors">Aceptar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* NAVBAR */}
-      <div className="max-w-7xl w-full mb-6 flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+      {/* NAVBAR PRINCIPAL DE PLAYA */}
+      <div className="max-w-7xl w-full mb-6 flex flex-wrap lg:flex-nowrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
         <button onClick={() => setActiveTab('varillas')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'varillas' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><Ruler className="w-5 h-5" /> 1. Varillado</button>
         <button onClick={() => setActiveTab('descarga')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'descarga' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><Truck className="w-5 h-5" /> 2. Descarga</button>
         <button onClick={() => setActiveTab('monitor')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'monitor' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><Database className="w-5 h-5" /> 3. Tanques</button>
         <button onClick={() => setActiveTab('registro')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'registro' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}><CalendarDays className="w-5 h-5" /> 4. Mensual</button>
         <button onClick={() => setActiveTab('gerencia')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${activeTab === 'gerencia' ? 'bg-rose-600 text-white shadow-md' : 'text-rose-600 hover:bg-rose-50'}`}>
-          {isAdmin ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />} 5. Gerencia
+          <Lock className="w-5 h-5" /> 5. Gerencia
         </button>
-        <button onClick={() => setActiveSector(null)} className="px-4 py-3 bg-slate-100 rounded-xl font-bold text-slate-500 hover:bg-slate-200">Cambiar Sector</button>
+        <button onClick={() => setActiveSector(null)} className="px-4 py-3 bg-slate-100 rounded-xl font-bold text-slate-500 hover:bg-slate-200 border border-slate-200 flex items-center gap-2">
+          <X className="w-4 h-4" /> Salir
+        </button>
       </div>
 
+      {/* CONTENIDO DINÁMICO */}
       <div className="max-w-7xl w-full">
-        {/* VARILLADO */}
+        
+        {/* TAB 1: VARILLADO (CON TABLA DE AFORO) */}
         {activeTab === 'varillas' && (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 xl:p-10 max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold text-slate-800 mb-6">Cierre de Día Anterior (Automático)</h1>
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 xl:p-10 max-w-4xl mx-auto animate-in fade-in">
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b">
+              <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl"><Ruler className="w-8 h-8" /></div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-800">Cierre de Día Anterior (Automático)</h1>
+                <p className="text-slate-500 text-sm italic">Los litros se calculan automáticamente con la tabla de calibración.</p>
+              </div>
+            </div>
             <div className="space-y-4 mb-8">
               {TANKS_CONFIG.map((tank) => (
                 <div key={tank.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-full sm:w-1/4"><h3 className="font-bold text-slate-700">{tank.name}</h3></div>
-                  <div className="flex-1 flex gap-3 w-full">
-                    <div className="flex-1">
-                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1 text-center">Varilla (mm)</label>
-                      <input type="number" value={tankReadings[tank.id].mm} onChange={(e) => handleTankReadingChange(tank.id, 'mm', e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-center font-bold text-indigo-900" placeholder="mm"/>
-                    </div>
+                  <div className="w-full sm:w-1/4">
+                    <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${tank.color}`}></div>{tank.name}
+                    </h3>
                   </div>
-                  <div className="w-full sm:w-1/3">
-                    <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1 text-center">Stock Final (L)</label>
-                    <input type="number" value={tankReadings[tank.id].liters} onChange={(e) => handleTankReadingChange(tank.id, 'liters', e.target.value)} className="w-full p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-center font-bold text-indigo-700" placeholder="L"/>
+                  <div className="flex-1 grid grid-cols-2 gap-4 w-full text-center">
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Varilla (mm)</label>
+                      <input type="number" value={tankReadings[tank.id].mm} onChange={(e) => handleTankReadingChange(tank.id, 'mm', e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-center font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="mm"/>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Litros Finales</label>
+                      <input type="number" value={tankReadings[tank.id].liters === '' ? '' : Math.round(tankReadings[tank.id].liters)} onChange={(e) => handleTankReadingChange(tank.id, 'liters', e.target.value)} className="w-full p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-center font-bold text-indigo-700" placeholder="L"/>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <button className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg">Registrar Cierre de Ayer</button>
+            <button onClick={iniciarCierreDia} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2">
+              <Send className="w-5 h-5" /> Registrar Cierre de Ayer
+            </button>
           </div>
         )}
 
-        {/* MONITOR DE TANQUES */}
+        {/* TAB 3: MONITOR VISUAL (LOS TANQUES) */}
         {activeTab === 'monitor' && (
-          <div className="bg-slate-800 rounded-3xl shadow-xl p-6 text-white text-center">
-            <h1 className="text-2xl font-bold mb-8">Monitor de Volumen</h1>
-            <div className="flex flex-wrap justify-center gap-8">
-              {TANKS_CONFIG.map((tank) => (
-                <div key={tank.id} className="flex flex-col items-center">
-                  <div className={`w-20 h-48 bg-slate-700 rounded-t-xl relative overflow-hidden border border-slate-600 flex items-end`}>
-                     <div className={`w-full ${tank.color}`} style={{ height: '50%' }}></div>
+          <div className="bg-slate-800 rounded-3xl shadow-xl p-8 text-white text-center animate-in fade-in">
+            <h1 className="text-2xl font-bold mb-10 flex items-center justify-center gap-3">
+              <Database className="text-emerald-400" /> Monitor de Volumen en Tiempo Real
+            </h1>
+            <div className="flex flex-wrap justify-center items-end gap-6 md:gap-10">
+              {TANKS_CONFIG.map((tank) => {
+                const currentLiters = parseFloat(tankReadings[tank.id].liters) || 0;
+                const percentage = Math.min(100, (currentLiters / tank.maxLiters) * 100);
+                const visualHeight = tank.maxLiters > 20000 ? 'h-64' : 'h-40';
+                return (
+                  <div key={tank.id} className="flex flex-col items-center">
+                    <div className={`text-xs font-bold mb-2 ${percentage < 20 ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
+                      {Math.round(percentage)}%
+                    </div>
+                    <div className={`w-20 ${visualHeight} bg-slate-700 rounded-t-xl relative overflow-hidden border border-slate-600 flex items-end shadow-inner`}>
+                      <div className={`w-full transition-all duration-1000 ${tank.color}`} style={{ height: `${percentage}%` }}>
+                        <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
+                      </div>
+                    </div>
+                    <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{tank.name.replace(/[()]/g, '')}</span>
+                    <span className="text-sm font-black text-white">{Math.round(currentLiters).toLocaleString('es-AR')} L</span>
                   </div>
-                  <span className="mt-4 text-sm font-bold">{tank.name}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
-        
-        {/* Aquí irían las demás pestañas (Descarga, Registro, Gerencia) con la misma lógica original */}
-        {activeTab !== 'varillas' && activeTab !== 'monitor' && (
-          <div className="text-center p-20 bg-white rounded-3xl border border-dashed text-slate-400">
-            Contenido de {activeTab.toUpperCase()} cargado correctamente.
+
+        {/* TAB 4: HISTORIAL MENSUAL (LA TABLA) */}
+        {activeTab === 'registro' && (
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 animate-in fade-in">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-xl font-bold flex items-center gap-2"><FileText className="text-emerald-600"/> Historial de Declaración</h1>
+              <button onClick={exportarExcel} className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><Download size={16}/> Exportar CSV</button>
+            </div>
+            <div className="overflow-x-auto rounded-xl border">
+              <table className="w-full text-[10px] text-left">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="p-3 font-bold border-r">Fecha</th>
+                    {TANKS_CONFIG.map(t => <th key={t.id} className="p-3 text-center border-r font-bold">{t.name} (LV)</th>)}
+                    <th className="p-3 font-bold">Responsable</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {dailyLogs.map(log => (
+                    <tr key={log.id} className="hover:bg-slate-50">
+                      <td className="p-3 border-r font-medium">{log.date}</td>
+                      {TANKS_CONFIG.map(t => <td key={t.id} className="p-3 text-center border-r font-bold text-indigo-600">{Math.round(log.tanks[t.id].lv)} L</td>)}
+                      <td className="p-3 text-slate-500">{log.responsable}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
+
+        {/* MENSAJE PARA TABS NO DESARROLLADOS AÚN EN ESTA VERSIÓN */}
+        {(activeTab === 'descarga' || activeTab === 'gerencia') && (
+          <div className="text-center p-20 bg-white rounded-3xl border border-dashed border-slate-300 text-slate-400">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock size={32} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-600">Sección en mantenimiento</h2>
+            <p>Estamos reconectando esta pestaña a la nueva base de datos del Spot.</p>
+          </div>
+        )}
+
       </div>
     </div>
   );
+}
+
+// CIERRE FINAL DE LA FUNCIÓN APP
+return null;
 }
