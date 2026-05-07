@@ -568,33 +568,63 @@ export default function App() {
   }
 
   // ==========================================
-  // PANTALLA DE BLOQUEO GLOBAL (NUEVA)
-  // ==========================================
-  if (!isAppUnlocked) {}
-  // 2. Si está desbloqueado pero no eligió sector, muestra el Distribuidor
-  if (activeSector === null) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <img src="/logo.png" alt="Axion" className="h-20 mb-8" />
-        <h1 className="text-2xl font-bold text-white mb-8 text-center">¿A qué sector vas a ingresar?</h1>
-        <div className="flex flex-col md:flex-row gap-6">
-          <button 
-            onClick={() => setActiveSector('playa')}
-            className="bg-indigo-600 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
-          >
-            <Fuel size={64} /> PLAYA
+// 1. PANTALLA DE BLOQUEO (PIN)
+if (!isAppUnlocked) {
+  return (
+    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full">
+        <img src="/logo.png" alt="Axion Crespo" className="h-32 w-auto mb-6 object-contain" />
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">AXION energy Crespo</h2>
+        <p className="text-slate-500 text-center mb-6 text-sm">Ingrese el PIN de equipo para operar</p>
+        
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (appPinInput === '6227') {
+            setIsAppUnlocked(true);
+          } else {
+            alert('PIN Incorrecto');
+            setAppPinInput('');
+          }
+        }} className="w-full space-y-4">
+          <input 
+            type="password" 
+            value={appPinInput} 
+            onChange={(e) => setAppPinInput(e.target.value)}
+            className="w-full p-3 border rounded-xl text-center text-2xl"
+            placeholder="****"
+          />
+          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">
+            Desbloquear Sistema
           </button>
-          <button 
-            onClick={() => setActiveSector('spot')}
-            className="bg-orange-500 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
-          >
-            <Coffee size={64} /> SPOT!
-          </button>
-        </div>
+        </form>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
+// 2. SELECCIÓN DE SECTOR (Solo aparece si pasó el PIN y activeSector es null)
+if (activeSector === null) {
+  return (
+    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <img src="/logo.png" alt="Axion" className="h-20 mb-8" />
+      <h1 className="text-2xl font-bold text-white mb-10 text-center">¿A qué sector vas a ingresar?</h1>
+      <div className="flex flex-col md:flex-row gap-6">
+        <button 
+          onClick={() => setActiveSector('playa')}
+          className="bg-indigo-600 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
+        >
+          <Fuel size={64} /> PLAYA
+        </button>
+        <button 
+          onClick={() => setActiveSector('spot')}
+          className="bg-orange-500 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
+        >
+          <Coffee size={64} /> SPOT!
+        </button>
+      </div>
+    </div>
+  );
+}
   // 3. Si eligió Spot, muestra el cartel de construcción
   if (activeSector === 'spot') {
     return (
