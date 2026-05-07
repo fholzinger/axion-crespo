@@ -4,56 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs } from 'firebase/firestore';
 
-// ==========================================
-// CÁLCULO DE AFORO EXACTO (FÓRMULA VOLUMÉTRICA)
-// ==========================================
-const calcularLitros = (tankId: string, mm: number): number => {
-  // Dimensiones exactas extraídas de tus Excel de calibración oficiales
-  const DIMENSIONES: any = {
-    'T12': { max: 41562, dia: 2264 }, // Tk 40m3
-    'T13': { max: 41562, dia: 2264 }, // Tk 40m3
-    'T14': { max: 20880, dia: 2264 }, // Tk 20m3 Compartimentado
-    'T15': { max: 20880, dia: 2264 }, // Tk 20m3 Compartimentado
-    'T10': { max: 10000, dia: 2088 }, // Tk 10m3
-    'T9':  { max: 10000, dia: 2088 }, // Tk 10m3
-    'T8':  { max: 10000, dia: 1837 }  // Tk 10m3 Chico
-  };
-  
-  const match = tankId.match(/T\d+/i);
-  if (!match) return 0;
-  
-  const id = match[0].toUpperCase();
-  const tank = DIMENSIONES[id];
-  
-  if (!tank || isNaN(mm) || mm <= 0) return 0;
-  if (mm >= tank.dia) return tank.max;
-  
-  // Fórmula trigonométrica para volumen de cilindros horizontales
-  const r = tank.dia / 2;
-  const h = mm;
-  const area = Math.pow(r, 2) * Math.acos((r - h) / r) - (r - h) * Math.sqrt(2 * r * h - Math.pow(h, 2));
-  const totalArea = Math.PI * Math.pow(r, 2);
-  
-  return Math.round((area / totalArea) * tank.max);
-};
-  
-  const match = tankId.match(/T\d+/i);
-  if (!match) return 0;
-  
-  const id = match[0].toUpperCase();
-  const tank = DIMENSIONES[id];
-  
-  if (!tank || isNaN(mm) || mm <= 0) return 0;
-  if (mm >= tank.dia) return tank.max;
-  
-  // Fórmula trigonométrica para volumen de cilindros horizontales
-  const r = tank.dia / 2;
-  const h = mm;
-  const area = Math.pow(r, 2) * Math.acos((r - h) / r) - (r - h) * Math.sqrt(2 * r * h - Math.pow(h, 2));
-  const totalArea = Math.PI * Math.pow(r, 2);
-  
-  return Math.round((area / totalArea) * tank.max);
-};
+
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
 // ==========================================
@@ -458,22 +409,41 @@ export default function App() {
     return { details, total };
   };
 
-  const convertMmToLiters = (mm: number, diameter: number, maxLiters: number) => {
-    if (!mm || mm <= 0) return 0;
-    if (mm >= diameter) return maxLiters;
-    const r = diameter / 2; const h = mm;
-    const area = Math.pow(r, 2) * Math.acos((r - h) / r) - (r - h) * Math.sqrt(2 * r * h - Math.pow(h, 2));
-    const totalArea = Math.PI * Math.pow(r, 2);
-    return (area / totalArea) * maxLiters;
-  };
-
+ // ==========================================
+  // CÁLCULO VOLUMÉTRICO BLINDADO (Evita el caché viejo)
+  // ==========================================
   const handleTankChange = (tankId: string, field: string, value: string) => {
     setTankReadings((prev: any) => {
       const updated = { ...prev, [tankId]: { ...prev[tankId], [field]: value } };
+      
       if (field === 'mm') { 
-        const parsedMm = parseFloat(value) || 0;
-        // ACÁ ESTABA EL ERROR: AHORA SÍ LLAMA A LA FÓRMULA NUEVA
-        updated[tankId].liters = calcularLitros(tankId, parsedMm); 
+        const mm = parseFloat(value) || 0;
+        
+        // Medidas EXACTAS inyectadas directamente a la fuerza (Tk 40m3, 20m3, 10m3)
+        const DIMENSIONES: any = {
+          't12': { max: 41562, dia: 2264 },
+          't13': { max: 41562, dia: 2264 },
+          't14': { max: 20880, dia: 2264 },
+          't15': { max: 20880, dia: 2264 },
+          't10': { max: 10000, dia: 2088 },
+          't9':  { max: 10000, dia: 2088 },
+          't8':  { max: 10000, dia: 1837 }
+        };
+        
+        const tank = DIMENSIONES[tankId];
+        
+        if (!tank || mm <= 0) {
+          updated[tankId].liters = 0;
+        } else if (mm >= tank.dia) {
+          updated[tankId].liters = tank.max;
+        } else {
+          // Fórmula trigonométrica real para tanques horizontales
+          const r = tank.dia / 2;
+          const h = mm;
+          const area = Math.pow(r, 2) * Math.acos((r - h) / r) - (r - h) * Math.sqrt(2 * r * h - Math.pow(h, 2));
+          const totalArea = Math.PI * Math.pow(r, 2);
+          updated[tankId].liters = Math.round((area / totalArea) * tank.max);
+        }
       }
       return updated;
     });
