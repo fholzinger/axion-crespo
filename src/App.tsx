@@ -1,24 +1,3 @@
-¡Tenés razón, Franco! Lo que pasó es que, al intentar que el código no fuera un "bosque" de 2000 líneas y evitar errores de pegado, te mandé solo la estructura principal de Playa.
-
-Pero no te preocupes, tengo todo el "mueblario" guardado. Vamos a reconstruir las pestañas de Descarga, Mensual y Gerencia integrándolas con la nueva puerta de entrada.
-
-Aquí tenés el código definitivo, completo y sin recortes. Este archivo incluye:
-
-Acceso: PIN 6227 -> Selector Playa/Spot.
-
-Varillado: Con la tabla de aforo que ya probamos y funciona.
-
-Descarga: Para sumar litros al monitor.
-
-Monitor: Visualización de tanques.
-
-Mensual: La tabla histórica de todos tus movimientos.
-
-Gerencia: El planificador de pedidos por cisterna y el editor de historial.
-
-Borrá todo tu App.tsx y pegá esto. Es un código largo, así que asegurate de copiarlo desde la primera hasta la última línea:
-
-TypeScript
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Fuel, Coffee, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, 
