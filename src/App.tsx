@@ -481,13 +481,22 @@ export default function App() {
     });
 
     // 4. ENVÍO DIRECTO A LA NUBE (Sin el candado "if user")
-    try {
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registros', 'diarios'), { logs: nuevosLogs });
-      console.log("¡Guardado en la nube exitoso!");
-    } catch (error) {
-      console.error("Error guardando en la nube:", error);
-    }
-  };
+
+  try {
+  await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registros', 'diarios'), { logs: nuevosLogs });
+  console.log("¡Guardado en la nube exitoso!");
+  
+  // 5. LA MAGIA DE LA LIMPIEZA: Borramos los números de las casillas
+  const blankReadings: any = {};
+  TANKS_CONFIG.forEach(tank => {
+    blankReadings[tank.id] = { mm: '', liters: 0, desc: '' };
+  });
+  setTankReadings(blankReadings);
+
+} catch (error) {
+  console.error("Error guardando en la nube:", error);
+}
+};
 
   // ==========================================
   // PANTALLA DE CARGA 
@@ -792,7 +801,8 @@ export default function App() {
             
             <div className="flex-1 flex flex-wrap items-end justify-center gap-4 md:gap-8 mt-4">
               {TANKS_CONFIG.map((tank) => {
-                const lastLog = dailyLogs.length > 0 ? dailyLogs[dailyLogs.length - 1] : null;
+                const sortedLogs = [...dailyLogs].sort((a, b) => b.date.localeCompare(a.date));
+                const lastLog = sortedLogs.length > 0 ? sortedLogs[0] : null;
                 const inicio = lastLog ? lastLog.tanks[tank.id].fin : 0;
                 const descHoy = parseFloat(tankReadings[tank.id].desc) || 0;
                 const currentLiters = inicio + descHoy;
