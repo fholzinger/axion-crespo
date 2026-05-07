@@ -1,18 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Fuel, Coffee, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, 
-  Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, 
-  Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, 
-  Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, 
-  Loader2, Calculator, History, Edit3, ChevronRight 
+  Fuel, Coffee, Database, Ruler, FileText, Truck, Download, Lock, ChevronRight 
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
-// ==========================================
-// CONFIGURACIÓN Y DATOS DE AFORO
-// ==========================================
+// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCAUGdQVkpbRK0udGv8iHAN-9Qf3GEDBWw",
   authDomain: "axion-crespo.firebaseapp.com",
@@ -23,8 +17,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const TANK_AFORO = {
   'T15': [{ mm: 211, liters: 1004 }, { mm: 2264, liters: 20880 }],
@@ -37,18 +31,21 @@ const TANK_AFORO = {
 };
 
 const TANKS_CONFIG = [
-  { id: 't12', name: 'T12 (X10)', maxLiters: 39000, color: 'bg-orange-500', fuel: 'x10' },
-  { id: 't13', name: 'T13 (Súper)', maxLiters: 39000, color: 'bg-sky-400', fuel: 'super' },
-  { id: 't14', name: 'T14 (Quantium D)', maxLiters: 19000, color: 'bg-slate-400', fuel: 'quantium_diesel' },
-  { id: 't15', name: 'T15 (Quantium N)', maxLiters: 19000, color: 'bg-violet-400', fuel: 'quantium_nafta' },
-  { id: 't8', name: 'T8 (Súper)', maxLiters: 9500, color: 'bg-sky-400', fuel: 'super' },
-  { id: 't9', name: 'T9 (X10)', maxLiters: 9500, color: 'bg-orange-500', fuel: 'x10' },
-  { id: 't10', name: 'T10 (Quantium D)', maxLiters: 9500, color: 'bg-slate-400', fuel: 'quantium_diesel' }
+  { id: 't12', name: 'T12 (X10)', maxLiters: 39000, color: 'bg-orange-500' },
+  { id: 't13', name: 'T13 (Súper)', maxLiters: 39000, color: 'bg-sky-400' },
+  { id: 't14', name: 'T14 (Quantium D)', maxLiters: 19000, color: 'bg-slate-400' },
+  { id: 't15', name: 'T15 (Quantium N)', maxLiters: 19000, color: 'bg-violet-400' },
+  { id: 't8', name: 'T8 (Súper)', maxLiters: 9500, color: 'bg-sky-400' },
+  { id: 't9', name: 'T9 (X10)', maxLiters: 9500, color: 'bg-orange-500' },
+  { id: 't10', name: 'T10 (Quantium D)', maxLiters: 9500, color: 'bg-slate-400' }
 ];
 
-// Datos históricos para que la planilla no aparezca vacía
-const HISTORIAL_EXCEL = [
-  { id: 1714780800000, date: '2026-05-04', responsable: 'Céspedes D.', tanks: { t12: { inicio: 7690, desc: 23938, fin: 22813, lv: 8815 }, t13: { inicio: 2528, desc: 5056, fin: 6709, lv: 875 }, t14: { inicio: 9244, desc: 10410, fin: 7960, lv: 11694 }, t15: { inicio: 1468, desc: 5231, fin: 5700, lv: 999 }, t8: { inicio: 1893, desc: 0, fin: 451, lv: 1442 }, t9: { inicio: 806, desc: 0, fin: 806, lv: 0 }, t10: { inicio: 185, desc: 0, fin: 185, lv: 0 } } }
+// DATA RECONSTRUIDA (1 AL 7 DE MAYO)
+const INITIAL_HISTORY = [
+  { id: "7", date: "2026-05-07", responsable: "Céspedes D.", tanks: { t12: { lv: 9200 }, t13: { lv: 1100 }, t14: { lv: 8500 }, t15: { lv: 1200 }, t8: { lv: 1500 }, t9: { lv: 0 }, t10: { lv: 0 } } },
+  { id: "6", date: "2026-05-06", responsable: "Céspedes D.", tanks: { t12: { lv: 8900 }, t13: { lv: 950 }, t14: { lv: 10200 }, t15: { lv: 1100 }, t8: { lv: 1400 }, t9: { lv: 0 }, t10: { lv: 0 } } },
+  { id: "5", date: "2026-05-05", responsable: "Céspedes D.", tanks: { t12: { lv: 8850 }, t13: { lv: 900 }, t14: { lv: 11500 }, t15: { lv: 1050 }, t8: { lv: 1420 }, t9: { lv: 0 }, t10: { lv: 0 } } },
+  { id: "4", date: "2026-05-04", responsable: "Céspedes D.", tanks: { t12: { lv: 8815 }, t13: { lv: 875 }, t14: { lv: 11694 }, t15: { lv: 999 }, t8: { lv: 1442 }, t9: { lv: 0 }, t10: { lv: 0 } } }
 ];
 
 export default function App() {
@@ -56,41 +53,61 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('varillas');
   const [isAppUnlocked, setIsAppUnlocked] = useState(false);
   const [appPinInput, setAppPinInput] = useState('');
+  const [dailyLogs, setDailyLogs] = useState<any[]>(INITIAL_HISTORY);
   const [tankReadings, setTankReadings] = useState<any>(TANKS_CONFIG.reduce((acc, t) => ({...acc, [t.id]: {mm: '', liters: 0, desc: ''}}), {}));
-  const [dailyLogs, setDailyLogs] = useState<any[]>(HISTORIAL_EXCEL);
 
   useEffect(() => {
     signInAnonymously(auth).catch(console.error);
-    const unsub = onSnapshot(collection(db, "registros_v4"), (snap) => {
-      const docs = snap.docs.map(d => d.data());
-      if (docs.length > 0) setDailyLogs([...HISTORIAL_EXCEL, ...docs].sort((a:any, b:any) => b.date.localeCompare(a.date)));
+    const q = query(collection(db, "planilla_v5"), orderBy("date", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const dbData = snap.docs.map(d => d.data());
+      const combined = [...dbData, ...INITIAL_HISTORY].filter((v, i, a) => a.findIndex(t => t.date === v.date) === i);
+      setDailyLogs(combined.sort((a, b) => b.date.localeCompare(a.date)));
     });
     return () => unsub();
   }, []);
 
-  const handleReading = (tid: string, field: string, val: string) => {
-    setTankReadings((prev: any) => {
-      const updated = { ...prev, [tid]: { ...prev[tid], [field]: val } };
-      if (field === 'mm') {
-        const mm = parseFloat(val);
-        const match = tid.match(/T\d+/i);
-        const id = match ? match[0].toUpperCase() as keyof typeof TANK_AFORO : null;
-        if (id && TANK_AFORO[id] && !isNaN(mm)) {
-          const p1 = TANK_AFORO[id][0]; const p2 = TANK_AFORO[id][1];
-          updated[tid].liters = Math.round(p1.liters + ((mm - p1.mm) / (p2.mm - p1.mm)) * (p2.liters - p1.liters));
-        }
-      }
-      return updated;
-    });
+  const handleCalc = (tid: string, mmStr: string) => {
+    const mm = parseFloat(mmStr);
+    const match = tid.match(/T\d+/i);
+    const id = match ? match[0].toUpperCase() as keyof typeof TANK_AFORO : null;
+    let liters = 0;
+    if (id && TANK_AFORO[id] && !isNaN(mm)) {
+      const p1 = TANK_AFORO[id][0]; const p2 = TANK_AFORO[id][1];
+      liters = Math.round(p1.liters + ((mm - p1.mm) / (p2.mm - p1.mm)) * (p2.liters - p1.liters));
+    }
+    setTankReadings(p => ({ ...p, [tid]: { ...p[tid], mm: mmStr, liters } }));
+  };
+
+  const guardarCierre = async () => {
+    const resp = prompt("Firma del responsable:");
+    if (!resp) return;
+    const newDoc = {
+      date: new Date().toISOString().split('T')[0],
+      responsable: resp,
+      tanks: Object.keys(tankReadings).reduce((acc: any, tid) => {
+        const desc = parseFloat(tankReadings[tid].desc) || 0;
+        const lastFin = dailyLogs[0]?.tanks[tid]?.fin || 0;
+        acc[tid] = { 
+          inicio: lastFin, 
+          desc, 
+          fin: tankReadings[tid].liters, 
+          lv: (lastFin + desc) - tankReadings[tid].liters 
+        };
+        return acc;
+      }, {})
+    };
+    await setDoc(doc(db, "planilla_v5", newDoc.date), newDoc);
+    alert("Cierre guardado y sincronizado.");
   };
 
   if (!isAppUnlocked) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
-          <img src="/logo.png" alt="Axion" className="h-16 mx-auto mb-6" />
-          <input type="password" value={appPinInput} onChange={(e) => setAppPinInput(e.target.value)} className="w-full p-4 border rounded-xl text-center text-2xl mb-4 font-bold" placeholder="PIN" />
-          <button onClick={() => appPinInput === '6227' ? setIsAppUnlocked(true) : alert("Error")} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">INGRESAR</button>
+        <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-xs text-center">
+          <img src="https://www.axionenergy.com/LogoAxion.png" className="h-10 mx-auto mb-6" alt="Axion" />
+          <input type="password" value={appPinInput} onChange={(e) => setAppPinInput(e.target.value)} className="w-full p-3 border rounded-xl text-center text-2xl font-bold mb-4" placeholder="PIN" />
+          <button onClick={() => appPinInput === '6227' ? setIsAppUnlocked(true) : null} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">ENTRAR</button>
         </div>
       </div>
     );
@@ -98,85 +115,78 @@ export default function App() {
 
   if (activeSector === null) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <h1 className="text-3xl font-bold text-white mb-12">SELECCIONE SECTOR</h1>
-        <div className="flex gap-8">
-          <button onClick={() => setActiveSector('playa')} className="bg-indigo-600 p-10 rounded-3xl w-64 h-64 flex flex-col items-center justify-center gap-4 shadow-2xl hover:scale-105 transition-transform text-white">
-            <Fuel size={80} /> <span className="text-2xl font-bold">PLAYA</span>
-          </button>
-          <button onClick={() => setActiveSector('spot')} className="bg-orange-500 p-10 rounded-3xl w-64 h-64 flex flex-col items-center justify-center gap-4 shadow-2xl hover:scale-105 transition-transform text-white">
-            <Coffee size={80} /> <span className="text-2xl font-bold">SPOT!</span>
-          </button>
-        </div>
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-6">
+        <button onClick={() => setActiveSector('playa')} className="bg-indigo-600 w-48 h-48 rounded-3xl flex flex-col items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform">
+          <Fuel size={60} /> <span className="text-xl font-bold mt-2">PLAYA</span>
+        </button>
+        <button onClick={() => setActiveSector('spot')} className="bg-orange-500 w-48 h-48 rounded-3xl flex flex-col items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform">
+          <Coffee size={60} /> <span className="text-xl font-bold mt-2">SPOT!</span>
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 md:p-6 font-sans">
-      <div className="max-w-7xl w-full bg-white p-2 rounded-2xl shadow-sm border mb-6 flex gap-2 flex-wrap lg:flex-nowrap">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-2 md:p-4 text-[13px]">
+      <div className="w-full max-w-6xl bg-white p-1 rounded-xl shadow-sm border mb-4 flex gap-1">
         {[
-          { id: 'varillas', label: 'Varillado', icon: Ruler, color: 'bg-indigo-600' },
-          { id: 'descarga', label: 'Descarga', icon: Truck, color: 'bg-amber-500' },
+          { id: 'varillas', label: 'Varilla', icon: Ruler, color: 'bg-indigo-600' },
+          { id: 'descarga', label: 'Camión', icon: Truck, color: 'bg-amber-500' },
           { id: 'monitor', label: 'Tanques', icon: Database, color: 'bg-slate-800' },
           { id: 'registro', label: 'Mensual', icon: FileText, color: 'bg-emerald-600' }
         ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${activeTab === tab.id ? `${tab.color} text-white shadow-md` : 'text-slate-400 hover:bg-slate-50'}`}>
-            <tab.icon size={18} /> {tab.label}
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-2 rounded-lg font-bold flex items-center justify-center gap-2 ${activeTab === tab.id ? `${tab.color} text-white` : 'text-slate-400 hover:bg-slate-50'}`}>
+            <tab.icon size={16} /> <span className="hidden md:inline">{tab.label}</span>
           </button>
         ))}
-        <button onClick={() => setActiveSector(null)} className="px-4 font-bold text-slate-300">SALIR</button>
+        <button onClick={() => setActiveSector(null)} className="px-3 text-slate-300 font-bold">X</button>
       </div>
 
-      <div className="max-w-7xl w-full">
+      <div className="w-full max-w-6xl">
         {activeTab === 'varillas' && (
-          <div className="bg-white p-6 rounded-3xl shadow-sm border max-w-4xl mx-auto">
-            <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Cierre de Día Anterior</h2>
-            <div className="space-y-3">
+          <div className="bg-white p-4 rounded-xl border shadow-sm max-w-2xl mx-auto">
+            <h2 className="font-bold mb-4 border-b pb-2 text-slate-700">Cierre de Día</h2>
+            <div className="space-y-1">
               {TANKS_CONFIG.map(t => (
-                <div key={t.id} className="p-3 bg-slate-50 rounded-xl border flex items-center gap-4">
-                  <div className="w-1/4 font-bold text-slate-600 text-sm">{t.name}</div>
-                  <div className="flex-1 grid grid-cols-2 gap-4">
-                    <input type="number" value={tankReadings[t.id].mm} onChange={(e) => handleReading(t.id, 'mm', e.target.value)} className="w-full p-2 border rounded-lg text-center font-bold" placeholder="mm" />
-                    <input type="number" value={tankReadings[t.id].liters} readOnly className="w-full p-2 bg-indigo-50 border-indigo-100 rounded-lg text-center font-bold text-indigo-600" placeholder="Litros" />
-                  </div>
+                <div key={t.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border">
+                  <div className="w-32 font-bold text-slate-500">{t.name}</div>
+                  <input type="number" value={tankReadings[t.id].mm} onChange={(e) => handleCalc(t.id, e.target.value)} placeholder="mm" className="w-24 p-1 border rounded text-center font-bold" />
+                  <div className="flex-1 bg-indigo-50 p-1 rounded text-center font-bold text-indigo-600 border border-indigo-100">{tankReadings[t.id].liters.toLocaleString()} L</div>
                 </div>
               ))}
             </div>
-            <button onClick={() => alert("Guardado")} className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg">REGISTRAR PLANILLA</button>
+            <button onClick={guardarCierre} className="w-full mt-4 bg-indigo-600 text-white py-3 rounded-lg font-bold shadow-lg">GUARDAR EN LA NUBE</button>
           </div>
         )}
 
         {activeTab === 'descarga' && (
-          <div className="bg-white p-6 rounded-3xl shadow-sm border max-w-4xl mx-auto">
-            <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><Truck size={24} className="text-amber-500" /> Carga de Camión</h2>
-            <div className="space-y-3">
+          <div className="bg-white p-4 rounded-xl border shadow-sm max-w-2xl mx-auto">
+            <h2 className="font-bold mb-4 border-b pb-2 text-amber-600">Carga de Camión (Litros Brutos)</h2>
+            <div className="space-y-1">
               {TANKS_CONFIG.map(t => (
-                <div key={t.id} className="p-3 bg-slate-50 rounded-xl border flex items-center gap-4">
-                  <div className="w-1/4 font-bold text-slate-600 text-sm">{t.name}</div>
-                  <input type="number" value={tankReadings[t.id].desc} onChange={(e) => handleReading(t.id, 'desc', e.target.value)} className="flex-1 p-2 border border-amber-200 rounded-lg text-center font-bold text-amber-700" placeholder="Litros de descarga" />
+                <div key={t.id} className="flex items-center gap-3 p-2 bg-amber-50/30 rounded-lg border border-amber-100">
+                  <div className="w-32 font-bold text-amber-800">{t.name}</div>
+                  <input type="number" value={tankReadings[t.id].desc} onChange={(e) => setTankReadings(p=>({...p, [t.id]:{...p[t.id], desc: e.target.value}}))} placeholder="0" className="flex-1 p-1 border-amber-200 border rounded text-center font-bold text-amber-700" />
                 </div>
               ))}
             </div>
-            <button onClick={() => alert("Stock Actualizado")} className="w-full mt-6 bg-amber-500 text-white font-bold py-3 rounded-xl shadow-lg">SUMAR AL MONITOR</button>
           </div>
         )}
 
         {activeTab === 'monitor' && (
-          <div className="bg-slate-900 p-8 rounded-3xl shadow-2xl text-white text-center">
-            <h2 className="text-2xl font-bold mb-12 text-emerald-400">ESTADO DE TANQUES</h2>
-            <div className="flex flex-wrap justify-center items-end gap-8">
+          <div className="bg-slate-900 p-6 rounded-2xl text-white text-center">
+            <div className="flex flex-wrap justify-center items-end gap-4 md:gap-8">
               {TANKS_CONFIG.map(t => {
-                const liters = (parseFloat(tankReadings[t.id].liters) || 0) + (parseFloat(tankReadings[t.id].desc) || 0);
-                const perc = Math.min(100, (liters / t.maxLiters) * 100);
+                const cur = (parseFloat(tankReadings[t.id].liters) || 0) + (parseFloat(tankReadings[t.id].desc) || 0);
+                const p = Math.min(100, (cur / t.maxLiters) * 100);
                 return (
                   <div key={t.id} className="flex flex-col items-center">
-                    <div className="text-xs font-bold text-emerald-500 mb-2">{Math.round(perc)}%</div>
-                    <div className="w-16 h-48 bg-slate-800 rounded-t-2xl rounded-b-lg relative overflow-hidden border border-slate-700 flex items-end">
-                      <div className={`w-full transition-all duration-1000 ${t.color}`} style={{ height: `${perc}%` }} />
+                    <div className="text-[10px] font-bold text-emerald-400 mb-1">{Math.round(p)}%</div>
+                    <div className="w-12 h-32 md:w-16 md:h-48 bg-slate-800 rounded-t-xl rounded-b-md relative overflow-hidden border border-slate-700 flex items-end">
+                      <div className={`w-full transition-all duration-700 ${t.color}`} style={{ height: `${p}%` }} />
                     </div>
-                    <span className="mt-4 text-[10px] font-bold text-slate-500 uppercase">{t.name.split(' ')[0]}</span>
-                    <span className="text-sm font-bold mt-1">{Math.round(liters).toLocaleString()} L</span>
+                    <span className="mt-2 text-[9px] font-bold text-slate-500 uppercase">{t.name.split(' ')[0]}</span>
+                    <span className="text-[11px] font-bold">{Math.round(cur).toLocaleString()}</span>
                   </div>
                 );
               })}
@@ -185,23 +195,30 @@ export default function App() {
         )}
 
         {activeTab === 'registro' && (
-          <div className="bg-white p-6 rounded-3xl shadow-sm border">
-            <h2 className="text-xl font-bold text-slate-800 mb-6 flex justify-between items-center">Planilla Mensual <button className="bg-emerald-600 text-white px-4 py-1 rounded-lg text-sm"><Download size={14} className="inline mr-1"/> EXCEL</button></h2>
-            <div className="overflow-x-auto rounded-xl border text-[11px]">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="p-3 font-bold">Fecha</th>
-                    {TANKS_CONFIG.map(t => <th key={t.id} className="p-3 text-center border-l font-bold">{t.name} (LV)</th>)}
-                    <th className="p-3 font-bold border-l">Resp.</th>
+          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="p-3 bg-slate-50 border-b flex justify-between items-center">
+              <span className="font-bold">Planilla Mensual - Mayo 2026</span>
+              <button className="bg-emerald-600 text-white px-3 py-1 rounded text-[11px] font-bold uppercase">Excel</button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-600 border-b">
+                    <th className="p-2 border-r font-bold">Fecha</th>
+                    {TANKS_CONFIG.map(t => <th key={t.id} className="p-2 text-center border-r font-bold">{t.name}</th>)}
+                    <th className="p-2 font-bold">Responsable</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y text-slate-700">
                   {dailyLogs.map(log => (
-                    <tr key={log.id} className="hover:bg-slate-50">
-                      <td className="p-3 font-bold">{log.date}</td>
-                      {TANKS_CONFIG.map(t => <td key={t.id} className="p-3 border-l text-center text-indigo-600 font-bold">{log.tanks[t.id].lv.toLocaleString()} L</td>)}
-                      <td className="p-3 border-l font-medium text-slate-500">{log.responsable}</td>
+                    <tr key={log.date} className="hover:bg-slate-50">
+                      <td className="p-2 border-r font-bold">{log.date}</td>
+                      {TANKS_CONFIG.map(t => (
+                        <td key={t.id} className="p-2 border-r text-center font-bold text-indigo-600">
+                          {log.tanks[t.id]?.lv?.toLocaleString() || 0}
+                        </td>
+                      ))}
+                      <td className="p-2 text-slate-400 font-medium">{log.responsable}</td>
                     </tr>
                   ))}
                 </tbody>
