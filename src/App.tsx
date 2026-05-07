@@ -17,9 +17,14 @@ const TANK_AFORO = {
 };
 
 const calcularLitros = (tankId: string, mm: number): number => {
-  // Transformamos a mayúscula por si tu código usa 't12' en vez de 'T12'
-  const idMayuscula = tankId.toUpperCase();
-  const table = TANK_AFORO[idMayuscula as keyof typeof TANK_AFORO];
+  // Magia: Extraemos solo la "T" y los números (ej: de "t12_x10" o "T12 (X10)" saca limpio "T12")
+  const match = tankId.match(/T\d+/i);
+  
+  // Si por algún motivo rarísimo no encuentra un número de tanque, cancela
+  if (!match) return 0;
+  
+  const idLimpio = match[0].toUpperCase();
+  const table = TANK_AFORO[idLimpio as keyof typeof TANK_AFORO];
   
   if (!table || table.length === 0 || isNaN(mm)) return 0;
   if (mm <= table[0].mm) return (mm / table[0].mm) * table[0].liters;
