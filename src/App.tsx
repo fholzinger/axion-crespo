@@ -97,12 +97,10 @@ const getYesterdayISOString = () => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('varillas'); 
-  const [user, setUser] = useState<any>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [isAppUnlocked, setIsAppUnlocked] = useState(false);
-  const [appPinInput, setAppPinInput] = useState('');
+  export default function App() {
+    const [activeTab, setActiveTab] = useState('varillas'); 
+    const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null); // AGREGAR ESTA LÍNEA
+    const [user, setUser] = useState<any>(null);
   
   // ==========================================
   // ESTADOS PRINCIPALES 
@@ -519,6 +517,82 @@ export default function App() {
           <h2 className="text-xl font-bold text-slate-800">Conectando...</h2>
           <p className="text-slate-500 text-center mt-2 text-sm">Rescatando información previa y sincronizando la estación...</p>
         </div>
+      </div>
+    );
+  }
+  // ==========================================
+  // 1. PANTALLA DE INGRESO (PIN OPERATIVO: 6227)
+  // ==========================================
+  if (!isAppUnlocked) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 animate-in fade-in duration-500">
+        <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
+          <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Fuel className="w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Panel Operativo</h2>
+          <p className="text-slate-500 text-sm mb-8">Ingrese su PIN de playa para continuar</p>
+          
+          <input 
+            type="password" 
+            value={appPinInput} 
+            onChange={(e) => setAppPinInput(e.target.value)} 
+            onKeyDown={(e) => { 
+              if (e.key === 'Enter') {
+                if (appPinInput === '6227') setIsAppUnlocked(true);
+                else { alert('PIN incorrecto'); setAppPinInput(''); }
+              }
+            }}
+            className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-bold text-slate-700 tracking-widest focus:border-indigo-500 outline-none transition-colors" 
+            placeholder="••••" 
+          />
+          <button 
+            onClick={() => {
+              if (appPinInput === '6227') setIsAppUnlocked(true);
+              else { alert('PIN incorrecto'); setAppPinInput(''); }
+            }} 
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center justify-center gap-2"
+          >
+            INGRESAR <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 2. PANTALLA DE SELECCIÓN DE SECTOR
+  // ==========================================
+  if (activeSector === null) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
+        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">SELECCIONE SECTOR</h1>
+        <div className="flex flex-col md:flex-row gap-8">
+          <button onClick={() => setActiveSector('playa')} className="bg-indigo-600 w-56 h-56 rounded-[30px] flex flex-col items-center justify-center text-white shadow-2xl shadow-indigo-500/20 hover:scale-105 transition-all">
+            <Fuel className="w-16 h-16 mb-4" /> <span className="text-2xl font-bold tracking-widest">PLAYA</span>
+          </button>
+          <button onClick={() => setActiveSector('spot')} className="bg-orange-500 w-56 h-56 rounded-[30px] flex flex-col items-center justify-center text-white shadow-2xl shadow-orange-500/20 hover:scale-105 transition-all">
+            <Coffee className="w-16 h-16 mb-4" /> <span className="text-2xl font-bold tracking-widest">SPOT!</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 3. PANTALLA EN CONSTRUCCIÓN DEL SPOT
+  // ==========================================
+  if (activeSector === 'spot') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+        <div className="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mb-8 mx-auto shadow-inner">
+          <Coffee className="w-12 h-12" />
+        </div>
+        <h2 className="text-4xl font-black text-slate-800 mb-4">Bienvenidas al Spot!</h2>
+        <p className="text-lg text-slate-500 mb-10 max-w-md font-medium">El tablero de tareas diarias, checklists y control de stock está en construcción.</p>
+        <button onClick={() => setActiveSector(null)} className="px-6 py-3 bg-white border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 hover:text-orange-500 transition-colors shadow-sm">
+          ← VOLVER A SELECCIÓN
+        </button>
       </div>
     );
   }
