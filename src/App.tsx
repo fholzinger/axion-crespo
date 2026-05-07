@@ -752,7 +752,8 @@ export default function App() {
 
             <div className="space-y-4 mb-8">
               {TANKS_CONFIG.map((tank) => {
-                const lastLog = dailyLogs.length > 0 ? dailyLogs[dailyLogs.length - 1] : null;
+                const sortedLogs = [...dailyLogs].sort((a, b) => b.date.localeCompare(a.date));
+                const lastLog = sortedLogs.length > 0 ? sortedLogs[0] : null;
                 const inicio = lastLog ? lastLog.tanks[tank.id].fin : 0;
                 const descIngresada = parseFloat(tankReadings[tank.id].desc) || 0;
                 const stockPostDescarga = inicio + descIngresada;
