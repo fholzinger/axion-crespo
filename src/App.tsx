@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Fuel, Coffee, Database, Ruler, FileText, Truck, Download, Lock, 
-  ShieldAlert, Calculator, X, Send, CheckCircle2 
-} from 'lucide-react';
+    Fuel, Coffee, Database, Ruler, FileText, Truck, Download, Lock, 
+    ShieldAlert, Calculator, X, Send, CheckCircle2, Unlock, Edit3 
+  } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
