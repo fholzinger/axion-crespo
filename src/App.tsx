@@ -38,6 +38,38 @@ const TANKS_CONFIG = [
   { id: 't9', name: 'T9 (X10)', maxLiters: 9500, diameterMm: 1500, color: 'bg-orange-500', fuel: 'x10' },
   { id: 't10', name: 'T10 (Quantium D)', maxLiters: 9500, diameterMm: 1500, color: 'bg-slate-400', fuel: 'quantium_diesel' }
 ];
+// ==========================================
+// CÁLCULO DE AFORO EXACTO (FÓRMULA VOLUMÉTRICA)
+// ==========================================
+const calcularLitros = (tankId: string, mm: number): number => {
+  // Dimensiones exactas extraídas de tus Excel de calibración oficiales
+  const DIMENSIONES: any = {
+    'T12': { max: 41562, dia: 2264 }, // Tk 40m3
+    'T13': { max: 41562, dia: 2264 }, // Tk 40m3
+    'T14': { max: 20880, dia: 2264 }, // Tk 20m3 Compartimentado
+    'T15': { max: 20880, dia: 2264 }, // Tk 20m3 Compartimentado
+    'T10': { max: 10000, dia: 2088 }, // Tk 10m3
+    'T9':  { max: 10000, dia: 2088 }, // Tk 10m3
+    'T8':  { max: 10000, dia: 1837 }  // Tk 10m3 Chico
+  };
+  
+  const match = tankId.match(/T\d+/i);
+  if (!match) return 0;
+  
+  const id = match[0].toUpperCase();
+  const tank = DIMENSIONES[id];
+  
+  if (!tank || isNaN(mm) || mm <= 0) return 0;
+  if (mm >= tank.dia) return tank.max;
+  
+  // Fórmula trigonométrica para volumen de cilindros horizontales
+  const r = tank.dia / 2;
+  const h = mm;
+  const area = Math.pow(r, 2) * Math.acos((r - h) / r) - (r - h) * Math.sqrt(2 * r * h - Math.pow(h, 2));
+  const totalArea = Math.PI * Math.pow(r, 2);
+  
+  return Math.round((area / totalArea) * tank.max);
+};
 
 // Configuración REAL de Camiones 
 const CAMIONES_CONFIG = {
