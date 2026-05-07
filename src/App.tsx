@@ -639,28 +639,27 @@ export default function App() {
   // ==========================================
   if (isAppUnlocked && activeSector === null) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <img src="/logo.png" alt="Axion Crespo" className="h-24 w-auto mb-8 object-contain" />
-        <h1 className="text-3xl font-bold text-white mb-10 text-center">¿A qué sector vas a ingresar?</h1>
-        
-        <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
           <button 
-            onClick={() => setActiveSector('playa')} 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white w-64 h-64 rounded-3xl text-3xl font-bold shadow-xl flex flex-col items-center justify-center gap-6 transition-transform hover:scale-105"
+            onClick={() => {
+              localStorage.clear(); // Limpia cualquier rastro de la sesión vieja
+              setActiveSector('playa');
+            }}
+            className="bg-indigo-600 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
           >
-            <Fuel className="w-20 h-20 text-indigo-200" />
-            PLAYA
+            <Fuel size={64} /> PLAYA
           </button>
           
           <button 
-            onClick={() => setActiveSector('spot')} 
-            className="bg-orange-500 hover:bg-orange-600 text-white w-64 h-64 rounded-3xl text-3xl font-bold shadow-xl flex flex-col items-center justify-center gap-6 transition-transform hover:scale-105"
+            onClick={() => {
+              localStorage.clear(); // Limpia cualquier rastro de la sesión vieja
+              setActiveSector('spot');
+            }}
+            className="bg-orange-500 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
           >
-            <Coffee className="w-20 h-20 text-orange-200" />
-            SPOT!
+            <Coffee size={64} /> SPOT!
           </button>
         </div>
-      </div>
     );
   }
 
