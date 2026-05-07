@@ -567,40 +567,66 @@ export default function App() {
     );
   }
 
+// ==========================================
+  // 1. PANTALLA DE PIN (BLOQUEO)
   // ==========================================
-// 1. PANTALLA DE BLOQUEO (PIN)
-if (!isAppUnlocked) {
-  return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full">
-        <img src="/logo.png" alt="Axion Crespo" className="h-32 w-auto mb-6 object-contain" />
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">AXION energy Crespo</h2>
-        <p className="text-slate-500 text-center mb-6 text-sm">Ingrese el PIN de equipo para operar</p>
-        
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          if (appPinInput === '6227') {
-            setIsAppUnlocked(true);
-          } else {
-            alert('PIN Incorrecto');
-            setAppPinInput('');
-          }
-        }} className="w-full space-y-4">
-          <input 
-            type="password" 
-            value={appPinInput} 
-            onChange={(e) => setAppPinInput(e.target.value)}
-            className="w-full p-3 border rounded-xl text-center text-2xl"
-            placeholder="****"
-          />
-          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">
-            Desbloquear Sistema
-          </button>
-        </form>
+  if (!isAppUnlocked) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full">
+          <img src="/logo.png" alt="Axion" className="h-24 mb-6 object-contain" />
+          <h2 className="text-2xl font-bold mb-4">Acceso al Sistema</h2>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (appPinInput === '6227') {
+              setIsAppUnlocked(true);
+              setActiveSector(null); // Esto fuerza a que aparezcan los botones
+            } else {
+              alert('PIN Incorrecto');
+              setAppPinInput('');
+            }
+          }} className="w-full space-y-4">
+            <input 
+              type="password" 
+              value={appPinInput} 
+              onChange={(e) => setAppPinInput(e.target.value)}
+              className="w-full p-3 border-2 border-slate-200 rounded-xl text-center text-2xl focus:border-indigo-500 outline-none"
+              placeholder="PIN"
+            />
+            <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+              Entrar
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+
+  // ==========================================
+  // 2. SELECTOR DE SECTOR (SOLO DESPUÉS DEL PIN)
+  // ==========================================
+  if (activeSector === null) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <img src="/logo.png" alt="Axion" className="h-20 mb-12" />
+        <h1 className="text-3xl font-bold text-white mb-10 text-center">Seleccione Sector</h1>
+        <div className="flex flex-col md:flex-row gap-8">
+          <button 
+            onClick={() => setActiveSector('playa')}
+            className="bg-indigo-600 p-10 rounded-[40px] text-white font-bold text-3xl flex flex-col items-center gap-6 w-72 shadow-2xl hover:scale-105 transition-transform"
+          >
+            <Fuel size={80} /> PLAYA
+          </button>
+          <button 
+            onClick={() => setActiveSector('spot')}
+            className="bg-orange-500 p-10 rounded-[40px] text-white font-bold text-3xl flex flex-col items-center gap-6 w-72 shadow-2xl hover:scale-105 transition-transform"
+          >
+            <Coffee size={80} /> SPOT!
+          </button>
+        </div>
+      </div>
+    );
+  }
 
 // 2. SELECCIÓN DE SECTOR (Solo aparece si pasó el PIN y activeSector es null)
 if (activeSector === null) {
@@ -665,33 +691,7 @@ if (activeSector === null) {
     );
   }
 // ==========================================
-  // PANTALLA DISTRIBUIDORA (PLAYA O SPOT)
-  // ==========================================
-  if (isAppUnlocked && activeSector === null) {
-    return (
-      <div className="flex flex-col md:flex-row gap-6">
-          <button 
-            onClick={() => {
-              localStorage.clear(); // Limpia cualquier rastro de la sesión vieja
-              setActiveSector('playa');
-            }}
-            className="bg-indigo-600 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
-          >
-            <Fuel size={64} /> PLAYA
-          </button>
-          
-          <button 
-            onClick={() => {
-              localStorage.clear(); // Limpia cualquier rastro de la sesión vieja
-              setActiveSector('spot');
-            }}
-            className="bg-orange-500 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
-          >
-            <Coffee size={64} /> SPOT!
-          </button>
-        </div>
-    );
-  }
+
 
   // ==========================================
   // MÓDULO SPOT! (En construcción)
