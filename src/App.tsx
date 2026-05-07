@@ -1,3 +1,4 @@
+import { Save, CheckCircle, Fuel, Coffee, AlertCircle, ChevronRight, Fuel as GasPump, Droplets, History, ClipboardCheck } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
@@ -569,7 +570,44 @@ export default function App() {
   // ==========================================
   // PANTALLA DE BLOQUEO GLOBAL (NUEVA)
   // ==========================================
-  if (!isAppUnlocked) {
+  if (!isAppUnlocked) {}
+  // 2. Si está desbloqueado pero no eligió sector, muestra el Distribuidor
+  if (activeSector === null) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <img src="/logo.png" alt="Axion" className="h-20 mb-8" />
+        <h1 className="text-2xl font-bold text-white mb-8 text-center">¿A qué sector vas a ingresar?</h1>
+        <div className="flex flex-col md:flex-row gap-6">
+          <button 
+            onClick={() => setActiveSector('playa')}
+            className="bg-indigo-600 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
+          >
+            <Fuel size={64} /> PLAYA
+          </button>
+          <button 
+            onClick={() => setActiveSector('spot')}
+            className="bg-orange-500 p-8 rounded-3xl text-white font-bold text-2xl flex flex-col items-center gap-4 w-64 hover:scale-105 transition-transform"
+          >
+            <Coffee size={64} /> SPOT!
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Si eligió Spot, muestra el cartel de construcción
+  if (activeSector === 'spot') {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6 flex flex-col items-center justify-center text-center">
+        <div className="bg-white p-10 rounded-3xl shadow-xl border-t-8 border-orange-500 max-w-lg">
+          <Coffee size={80} className="text-orange-500 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold mb-4">Módulo Spot!</h2>
+          <p className="text-slate-600 mb-8 text-xl">Hola Tatiana, Fiorella y Cintia. Estamos preparando su tablero de tareas.</p>
+          <button onClick={() => setActiveSector(null)} className="text-indigo-600 font-bold text-lg">← Volver al inicio</button>
+        </div>
+      </div>
+    );
+  }
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center max-w-sm w-full animate-in zoom-in-95 duration-300">
