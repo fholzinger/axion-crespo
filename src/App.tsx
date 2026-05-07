@@ -3,7 +3,35 @@ import { Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs } from 'firebase/firestore';
+// ==========================================
+// TABLAS DE AFORO OFICIALES (CALIBRACIÓN)
+// ==========================================
+const TANK_AFORO = {
+  'T15': [{ mm: 211, liters: 1004 }, { mm: 342, liters: 2006 }, { mm: 454, liters: 3004 }, { mm: 556, liters: 4000 }, { mm: 653, liters: 5008 }, { mm: 745, liters: 6008 }, { mm: 834, liters: 7007 }, { mm: 921, liters: 8007 }, { mm: 1007, liters: 9010 }, { mm: 1092, liters: 10010 }, { mm: 1176, liters: 11000 }, { mm: 1261, liters: 12000 }, { mm: 1347, liters: 13001 }, { mm: 1435, liters: 14009 }, { mm: 1524, liters: 15005 }, { mm: 1616, liters: 16000 }, { mm: 1713, liters: 17001 }, { mm: 1817, liters: 18007 }, { mm: 1931, liters: 19007 }, { mm: 2065, liters: 20003 }, { mm: 2264, liters: 20880 }],
+  'T14': [{ mm: 211, liters: 1004 }, { mm: 342, liters: 2006 }, { mm: 454, liters: 3004 }, { mm: 556, liters: 4000 }, { mm: 653, liters: 5008 }, { mm: 745, liters: 6008 }, { mm: 834, liters: 7007 }, { mm: 921, liters: 8007 }, { mm: 1007, liters: 9010 }, { mm: 1092, liters: 10010 }, { mm: 1176, liters: 11000 }, { mm: 1261, liters: 12000 }, { mm: 1347, liters: 13001 }, { mm: 1435, liters: 14009 }, { mm: 1524, liters: 15005 }, { mm: 1616, liters: 16000 }, { mm: 1713, liters: 17001 }, { mm: 1817, liters: 18007 }, { mm: 1931, liters: 19007 }, { mm: 2065, liters: 20003 }, { mm: 2264, liters: 20880 }],
+  'T13': [{ mm: 212, liters: 2007 }, { mm: 343, liters: 4000 }, { mm: 456, liters: 6006 }, { mm: 559, liters: 8011 }, { mm: 655, liters: 10001 }, { mm: 748, liters: 12017 }, { mm: 837, liters: 14009 }, { mm: 924, liters: 16001 }, { mm: 1010, liters: 18001 }, { mm: 1096, liters: 20017 }, { mm: 1181, liters: 22015 }, { mm: 1266, liters: 24005 }, { mm: 1353, liters: 26022 }, { mm: 1440, liters: 28006 }, { mm: 1530, liters: 30007 }, { mm: 1623, liters: 32005 }, { mm: 1721, liters: 34001 }, { mm: 1825, liters: 36001 }, { mm: 1941, liters: 38005 }, { mm: 2080, liters: 40011 }, { mm: 2171, liters: 41002 }, { mm: 2264, liters: 41562 }],
+  'T12': [{ mm: 212, liters: 2007 }, { mm: 343, liters: 4000 }, { mm: 456, liters: 6006 }, { mm: 559, liters: 8011 }, { mm: 655, liters: 10001 }, { mm: 748, liters: 12017 }, { mm: 837, liters: 14009 }, { mm: 924, liters: 16001 }, { mm: 1010, liters: 18001 }, { mm: 1096, liters: 20017 }, { mm: 1181, liters: 22015 }, { mm: 1266, liters: 24005 }, { mm: 1353, liters: 26022 }, { mm: 1440, liters: 28006 }, { mm: 1530, liters: 30007 }, { mm: 1623, liters: 32005 }, { mm: 1721, liters: 34001 }, { mm: 1825, liters: 36001 }, { mm: 1941, liters: 38005 }, { mm: 2080, liters: 40011 }, { mm: 2171, liters: 41002 }, { mm: 2264, liters: 41562 }],
+  'T10': [{ mm: 190, liters: 400 }, { mm: 367, liters: 1000 }, { mm: 450, liters: 1400 }, { mm: 586, liters: 2000 }, { mm: 665, liters: 2400 }, { mm: 764, liters: 3000 }, { mm: 850, liters: 3400 }, { mm: 955, liters: 4000 }, { mm: 1020, liters: 4400 }, { mm: 1124, liters: 5000 }, { mm: 1190, liters: 5400 }, { mm: 1286, liters: 6000 }, { mm: 1350, liters: 6400 }, { mm: 1455, liters: 7000 }, { mm: 1525, liters: 7400 }, { mm: 1643, liters: 8000 }, { mm: 1722, liters: 8400 }, { mm: 1847, liters: 9000 }, { mm: 1940, liters: 9400 }, { mm: 2088, liters: 10000 }],
+  'T9': [{ mm: 190, liters: 400 }, { mm: 367, liters: 1000 }, { mm: 450, liters: 1400 }, { mm: 586, liters: 2000 }, { mm: 665, liters: 2400 }, { mm: 764, liters: 3000 }, { mm: 850, liters: 3400 }, { mm: 955, liters: 4000 }, { mm: 1020, liters: 4400 }, { mm: 1124, liters: 5000 }, { mm: 1190, liters: 5400 }, { mm: 1286, liters: 6000 }, { mm: 1350, liters: 6400 }, { mm: 1455, liters: 7000 }, { mm: 1525, liters: 7400 }, { mm: 1643, liters: 8000 }, { mm: 1722, liters: 8400 }, { mm: 1847, liters: 9000 }, { mm: 1940, liters: 9400 }, { mm: 2088, liters: 10000 }],
+  'T8': [{ mm: 135, liters: 400 }, { mm: 275, liters: 1000 }, { mm: 355, liters: 1400 }, { mm: 463, liters: 2000 }, { mm: 540, liters: 2400 }, { mm: 630, liters: 3000 }, { mm: 695, liters: 3400 }, { mm: 787, liters: 4000 }, { mm: 856, liters: 4400 }, { mm: 941, liters: 5000 }, { mm: 1005, liters: 5400 }, { mm: 1089, liters: 6000 }, { mm: 1155, liters: 6400 }, { mm: 1244, liters: 7000 }, { mm: 1310, liters: 7400 }, { mm: 1410, liters: 8000 }, { mm: 1480, liters: 8400 }, { mm: 1595, liters: 9000 }, { mm: 1680, liters: 9400 }, { mm: 1837, liters: 10000 }]
+};
 
+const calcularLitros = (tankId: string, mm: number): number => {
+  const table = TANK_AFORO[tankId as keyof typeof TANK_AFORO];
+  if (!table || table.length === 0 || isNaN(mm)) return 0;
+  if (mm <= table[0].mm) return (mm / table[0].mm) * table[0].liters;
+  if (mm >= table[table.length - 1].mm) return table[table.length - 1].liters;
+
+  for (let i = 0; i < table.length - 1; i++) {
+    const p1 = table[i];
+    const p2 = table[i + 1];
+    if (mm >= p1.mm && mm <= p2.mm) {
+      const fraction = (mm - p1.mm) / (p2.mm - p1.mm);
+      return Math.round(p1.liters + fraction * (p2.liters - p1.liters));
+    }
+  }
+  return 0;
+};
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
 // ==========================================
@@ -390,14 +418,25 @@ export default function App() {
   // ==========================================
   // LÓGICA DE OPERACIÓN GENERAL
   // ==========================================
-  const getAssignedTank = (cisternId: string) => {
-    for (const [tankId, cisterns] of Object.entries(tankOrders)) { if ((cisterns as any).includes(cisternId)) return tankId; }
-    return null;
-  };
-  const assignCistern = (tankId: string, cisternId: string) => { if (cisternId) setTankOrders((prev: any) => ({ ...prev, [tankId]: [...prev[tankId], cisternId] })); };
-  const removeCistern = (tankId: string, cisternId: string) => { setTankOrders((prev: any) => ({ ...prev, [tankId]: prev[tankId].filter((id: any) => id !== cisternId) })); };
-  const handleTruckChange = (truckType: 'estandar' | 'chico') => { setSelectedTruck(truckType); setTankOrders(TANKS_CONFIG.reduce((acc, tank) => { acc[tank.id] = []; return acc; }, {} as any)); };
+  const handleTankReadingChange = (tankId: string, field: 'mm' | 'liters' | 'desc', value: string) => {
+    setTankReadings(prev => {
+      const newReadings = { ...prev };
+      newReadings[tankId] = { ...newReadings[tankId], [field]: value };
+      
+      // Si escribís en la varilla (mm), calculamos los litros automáticamente
+      if (field === 'mm') {
+        if (value === '') {
+          newReadings[tankId].liters = ''; // Si borrás el mm, borramos el litro
+        } else {
+          const mmValue = parseFloat(value);
+          const litrosCalculados = calcularLitros(tankId, mmValue);
+          newReadings[tankId].liters = litrosCalculados.toString();
+        }
+      }
 
+      return newReadings;
+    });
+  };
   const calcularCostoPedido = () => {
     let summary: any = { super: 0, quantium_nafta: 0, x10: 0, quantium_diesel: 0 };
     Object.keys(tankOrders).forEach(tankId => {
