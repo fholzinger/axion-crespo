@@ -17,7 +17,10 @@ const TANK_AFORO = {
 };
 
 const calcularLitros = (tankId: string, mm: number): number => {
-  const table = TANK_AFORO[tankId as keyof typeof TANK_AFORO];
+  // Transformamos a mayúscula por si tu código usa 't12' en vez de 'T12'
+  const idMayuscula = tankId.toUpperCase();
+  const table = TANK_AFORO[idMayuscula as keyof typeof TANK_AFORO];
+  
   if (!table || table.length === 0 || isNaN(mm)) return 0;
   if (mm <= table[0].mm) return (mm / table[0].mm) * table[0].liters;
   if (mm >= table[table.length - 1].mm) return table[table.length - 1].liters;
@@ -423,13 +426,13 @@ export default function App() {
       const newReadings = { ...prev };
       newReadings[tankId] = { ...newReadings[tankId], [field]: value };
       
-      // Si escribís en la varilla (mm), calculamos los litros automáticamente
       if (field === 'mm') {
         if (value === '') {
-          newReadings[tankId].liters = ''; // Si borrás el mm, borramos el litro
+          newReadings[tankId].liters = '';
         } else {
           const mmValue = parseFloat(value);
           const litrosCalculados = calcularLitros(tankId, mmValue);
+          console.log(`Calculando Tanque ${tankId}: ${mmValue}mm -> ${litrosCalculados} Litros`); // EL CHISMOSO
           newReadings[tankId].liters = litrosCalculados.toString();
         }
       }
