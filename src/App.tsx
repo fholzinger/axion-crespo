@@ -466,11 +466,11 @@ export default function App() {
       newLog.tanks[tank.id] = { inicio, desc, fin, lv: inicio + desc - fin };
     });
 
-    // 2. MAGIA VISUAL: Actualizamos tu Planilla de Declaración al instante
+    // 2. Actualizamos tu Planilla de Declaración al instante en pantalla
     const nuevosLogs = [...dailyLogs.filter(log => log.date !== fechaAyerIso), newLog].sort((a, b) => b.date.localeCompare(a.date));
     setDailyLogs(nuevosLogs);
 
-    // 3. Mostramos el cartel verde de éxito
+    // 3. Mostramos el cartel de éxito
     setModalConfig({
       isOpen: true,
       type: 'success',
@@ -480,14 +480,12 @@ export default function App() {
       onConfirm: null
     });
 
-    // 4. Guardado silencioso en la nube
-    // (Fíjate que esta última línea de 'setDoc' sea igual a la que tenías originalmente en tu código)
-    if (user) {
-      try {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registros', 'diarios'), { logs: nuevosLogs });
-      } catch (error) {
-        console.error("Error guardando de fondo:", error);
-      }
+    // 4. ENVÍO DIRECTO A LA NUBE (Sin el candado "if user")
+    try {
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registros', 'diarios'), { logs: nuevosLogs });
+      console.log("¡Guardado en la nube exitoso!");
+    } catch (error) {
+      console.error("Error guardando en la nube:", error);
     }
   };
 
