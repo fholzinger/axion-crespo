@@ -101,6 +101,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('varillas'); 
   const [user, setUser] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isAppUnlocked, setIsAppUnlocked] = useState(false);
+  const [appPinInput, setAppPinInput] = useState('');
   
   // ==========================================
   // ESTADOS PRINCIPALES 
@@ -520,7 +522,46 @@ export default function App() {
       </div>
     );
   }
-
+// ==========================================
+  // PANTALLA DE INGRESO (PIN OPERATIVO)
+  // ==========================================
+  if (!isAppUnlocked) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 animate-in fade-in duration-500">
+        <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
+          {/* Si no tenés el logo en la carpeta, aparecerá el ícono de surtidor */}
+          <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Fuel className="w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Panel Operativo</h2>
+          <p className="text-slate-500 text-sm mb-8">Ingrese su PIN de playa para continuar</p>
+          
+          <input 
+            type="password" 
+            value={appPinInput} 
+            onChange={(e) => setAppPinInput(e.target.value)} 
+            onKeyDown={(e) => { 
+              if (e.key === 'Enter') {
+                if (appPinInput === '6227') setIsAppUnlocked(true);
+                else { alert('PIN incorrecto'); setAppPinInput(''); }
+              }
+            }}
+            className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-bold text-slate-700 tracking-widest focus:border-indigo-500 outline-none transition-colors" 
+            placeholder="••••" 
+          />
+          <button 
+            onClick={() => {
+              if (appPinInput === '6227') setIsAppUnlocked(true);
+              else { alert('PIN incorrecto'); setAppPinInput(''); }
+            }} 
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center justify-center gap-2"
+          >
+            INGRESAR <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
   const orderCotization = calcularCostoPedido();
 
   // ==========================================
