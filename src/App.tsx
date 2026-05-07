@@ -726,7 +726,7 @@ export default function App() {
                 <Ruler className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-800">Cierre de Día Anterior (Matutino)</h1>
+                <h1 className="text-2xl font-bold text-slate-800">Cierre de Día Anterior (Automático)</h1>
                 <p className="text-slate-500 text-sm">Ingresa la varilla. Si el litro no coincide con tu tabla, puedes editarlo directamente.</p>
               </div>
             </div>
