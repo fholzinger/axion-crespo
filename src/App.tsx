@@ -41,6 +41,11 @@ const calcularLitros = (tankId: string, mm: number): number => {
   return 0;
 };
 // ==========================================
+// CONFIGURACIÓN SPOT!
+// ==========================================
+const SPOT_TEAM = ['Tatiana Walter', 'Fiorella Zapata', 'Cintia Chiappesoni'];
+const SPOT_TURNOS = ['Mañana', 'Tarde'];
+// ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
 // ==========================================
 const firebaseConfig = {
@@ -137,6 +142,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isAppUnlocked, setIsAppUnlocked] = useState(false);
+  const [activeSector, setActiveSector] = useState<'playa' | 'spot' | null>(null);
     const [appPinInput, setAppPinInput] = useState('');
   // ==========================================
   // ESTADOS PRINCIPALES 
@@ -590,7 +596,61 @@ export default function App() {
       </div>
     );
   }
+// ==========================================
+  // PANTALLA DISTRIBUIDORA (PLAYA O SPOT)
+  // ==========================================
+  if (isAppUnlocked && activeSector === null) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <img src="/logo.png" alt="Axion Crespo" className="h-24 w-auto mb-8 object-contain" />
+        <h1 className="text-3xl font-bold text-white mb-10 text-center">¿A qué sector vas a ingresar?</h1>
+        
+        <div className="flex flex-col md:flex-row gap-6">
+          <button 
+            onClick={() => setActiveSector('playa')} 
+            className="bg-indigo-600 hover:bg-indigo-700 text-white w-64 h-64 rounded-3xl text-3xl font-bold shadow-xl flex flex-col items-center justify-center gap-6 transition-transform hover:scale-105"
+          >
+            <Fuel className="w-20 h-20 text-indigo-200" />
+            PLAYA
+          </button>
+          
+          <button 
+            onClick={() => setActiveSector('spot')} 
+            className="bg-orange-500 hover:bg-orange-600 text-white w-64 h-64 rounded-3xl text-3xl font-bold shadow-xl flex flex-col items-center justify-center gap-6 transition-transform hover:scale-105"
+          >
+            <Coffee className="w-20 h-20 text-orange-200" />
+            SPOT!
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // ==========================================
+  // MÓDULO SPOT! (En construcción)
+  // ==========================================
+  if (isAppUnlocked && activeSector === 'spot') {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6 flex flex-col items-center">
+        <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-8 mt-10 text-center border-t-8 border-orange-500">
+          <Coffee className="w-24 h-24 text-orange-500 mx-auto mb-6" />
+          <h1 className="text-4xl font-bold text-slate-800 mb-4">Bienvenidas al Spot!</h1>
+          <p className="text-xl text-slate-600 mb-8">El sistema de gestión de tareas para Tatiana, Fiorella y Cintia está en construcción.</p>
+          <button 
+            onClick={() => setActiveSector(null)} 
+            className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition-colors"
+          >
+            Volver al Inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // A partir de acá sigue tu código normal de la PLAYA...
+  if (activeSector === 'playa') {
+     // ATENCIÓN: Si ves un error rojo al final de tu archivo después de pegar esto,
+     // es porque necesitamos envolver la app de playa. Avisame si pasa.
   const orderCotization = calcularCostoPedido();
 
   // ==========================================
