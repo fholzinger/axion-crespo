@@ -752,7 +752,7 @@ export default function App() {
                       <div className="flex-1">
                         <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Varilla (mm)</label>
                         <div className="relative">
-                          <input type="number" value={tankReadings[tank.id].mm} onChange={(e) => handleTankChange(tank.id, 'mm', e.target.value)} className="w-full pl-3 pr-8 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-900" placeholder="mm"/>
+                        <input type="number" value={tankReadings[tank.id].mm} onChange={(e) => handleTankReadingChange(tank.id, 'mm', e.target.value)} className="w-full pl-3 pr-8 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-900" placeholder="mm"/>
                           <span className="absolute right-2 top-2 text-slate-400 text-xs font-medium">mm</span>
                         </div>
                       </div>
@@ -768,7 +768,7 @@ export default function App() {
                         <input 
                           type="number" 
                           value={tankReadings[tank.id].liters === 0 && tankReadings[tank.id].mm === '' ? '' : Math.round(tankReadings[tank.id].liters)} 
-                          onChange={(e) => handleTankChange(tank.id, 'liters', e.target.value)}
+                          onChange={(e) => handleTankReadingChange(tank.id, 'liters', e.target.value)}
                           className="bg-transparent w-full outline-none font-bold text-indigo-700" 
                           placeholder="0"
                         />
