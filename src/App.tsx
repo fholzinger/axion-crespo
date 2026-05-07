@@ -472,7 +472,8 @@ export default function App() {
       const updated = { ...prev, [tankId]: { ...prev[tankId], [field]: value } };
       if (field === 'mm') { 
         const parsedMm = parseFloat(value) || 0;
-        updated[tankId].liters = convertMmToLiters(parsedMm, TANKS_CONFIG.find(t=>t.id===tankId)!.diameterMm, TANKS_CONFIG.find(t=>t.id===tankId)!.maxLiters); 
+        // ACÁ ESTABA EL ERROR: AHORA SÍ LLAMA A LA FÓRMULA NUEVA
+        updated[tankId].liters = calcularLitros(tankId, parsedMm); 
       }
       return updated;
     });
