@@ -80,13 +80,13 @@ const FUEL_TYPES = {
 
 // Configuración REAL de Tanques
 const TANKS_CONFIG = [
-  { id: 't12', name: 'T12 (X10)', maxLiters: 39000, diameterMm: 2270, color: 'bg-orange-500', fuel: 'x10' },
-  { id: 't13', name: 'T13 (Súper)', maxLiters: 39000, diameterMm: 2270, color: 'bg-sky-400', fuel: 'super' },
-  { id: 't14', name: 'T14 (Quantium D)', maxLiters: 19000, diameterMm: 2270, color: 'bg-slate-400', fuel: 'quantium_diesel' },
-  { id: 't15', name: 'T15 (Quantium N)', maxLiters: 19000, diameterMm: 2270, color: 'bg-violet-400', fuel: 'quantium_nafta' },
-  { id: 't8', name: 'T8 (Súper)', maxLiters: 9500, diameterMm: 1500, color: 'bg-sky-400', fuel: 'super' },
-  { id: 't9', name: 'T9 (X10)', maxLiters: 9500, diameterMm: 1500, color: 'bg-orange-500', fuel: 'x10' },
-  { id: 't10', name: 'T10 (Quantium D)', maxLiters: 9500, diameterMm: 1500, color: 'bg-slate-400', fuel: 'quantium_diesel' }
+  { id: 't12', name: 'T12 (X10)', maxLiters: 41562, diameterMm: 2264, color: 'bg-orange-500', fuel: 'x10' },
+  { id: 't13', name: 'T13 (Súper)', maxLiters: 41562, diameterMm: 2264, color: 'bg-sky-400', fuel: 'super' },
+  { id: 't14', name: 'T14 (Quantium D)', maxLiters: 20880, diameterMm: 2264, color: 'bg-slate-400', fuel: 'quantium_diesel' },
+  { id: 't15', name: 'T15 (Quantium N)', maxLiters: 20880, diameterMm: 2264, color: 'bg-violet-400', fuel: 'quantium_nafta' },
+  { id: 't8', name: 'T8 (Súper)', maxLiters: 10000, diameterMm: 1837, color: 'bg-sky-400', fuel: 'super' },
+  { id: 't9', name: 'T9 (X10)', maxLiters: 10000, diameterMm: 2088, color: 'bg-orange-500', fuel: 'x10' },
+  { id: 't10', name: 'T10 (Quantium D)', maxLiters: 10000, diameterMm: 2088, color: 'bg-slate-400', fuel: 'quantium_diesel' }
 ];
 
 // Configuración REAL de Camiones 
