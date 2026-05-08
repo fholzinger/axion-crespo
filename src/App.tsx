@@ -565,31 +565,23 @@ export default function App() {
     );
   }
 
-  // ==========================================
-  // 2. PANTALLA DE SELECCIÓN DE SECTOR
+ // ==========================================
+  // PANTALLA DE SELECCIÓN DE SECTOR
   // ==========================================
   if (activeSector === null) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
         <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">SELECCIONE SECTOR</h1>
         <div className="flex flex-col md:flex-row gap-8">
-          {/* BOTÓN PLAYA (CON ICONO DE SURTIDOR FUCSIA) */}
+          
           <button onClick={() => setActiveSector('playa')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:scale-105 hover:bg-slate-50 transition-all p-12">
-            <img 
-              src={PlayaIcon} 
-              alt="Sector Playa" 
-              className="w-full h-auto object-contain" // Esto hace que la imagen se adapte al botón
-            />
+            <img src={PlayaIcon} alt="Playa" className="w-full h-auto object-contain" />
           </button>
           
-          {/* BOTÓN SPOT! (CON LOGO DE TEXTO MANUSCRITO FUCSIA) */}
           <button onClick={() => setActiveSector('spot')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:scale-105 hover:bg-slate-50 transition-all p-12">
-            <img 
-              src={SpotIcon} 
-              alt="Sector Spot!" 
-              className="w-full h-auto object-contain" // Esto hace que el logo se adapte al botón
-            />
+            <img src={SpotIcon} alt="Spot!" className="w-full h-auto object-contain" />
           </button>
+          
         </div>
       </div>
     );
