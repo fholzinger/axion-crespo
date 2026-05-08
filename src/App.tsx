@@ -763,6 +763,18 @@ export default function App() {
         <button onClick={() => setActiveTab('gerencia')} className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 md:px-4 rounded-xl font-bold transition-all text-sm md:text-base ${activeTab === 'gerencia' ? 'bg-rose-600 text-white shadow-md' : 'text-rose-600 hover:bg-rose-50'}`}>
           {isAdmin ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />} 5. Gerencia
         </button>
+        
+        {/* BOTÓN PARA VOLVER AL MENÚ DE SELECCIÓN */}
+        <button 
+          onClick={() => {
+            setActiveSector(null);
+            setIsAdmin(false); // Cerramos sesión de gerencia por seguridad al salir
+          }} 
+          className="flex items-center justify-center px-4 py-3 rounded-xl font-bold transition-all text-slate-400 hover:bg-rose-50 hover:text-rose-600" 
+          title="Volver al Menú Principal"
+        >
+          <X className="w-6 h-6" />
+        </button>
       </div>
 
       <div className="max-w-7xl w-full">
