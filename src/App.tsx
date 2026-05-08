@@ -593,19 +593,35 @@ export default function App() {
     );
   }
   // ==========================================
-  // 3. PANTALLA EN CONSTRUCCIÓN DEL SPOT
+  // 3. PANTALLA DEL SPOT!
   // ==========================================
   if (activeSector === 'spot') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-        <div className="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mb-8 mx-auto shadow-inner">
-          <Coffee className="w-12 h-12" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 md:p-8 animate-in fade-in duration-300">
+        <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden">
+           
+           {/* CABECERA */}
+           <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
+              <h2 className="text-3xl font-black flex items-center gap-4 tracking-wide">
+                {/* Usamos el logo que ya importaste */}
+                <img src={SpotIcon} alt="Spot!" className="w-16 h-auto brightness-0 invert" /> 
+                CHECKLIST OPERATIVO
+              </h2>
+              <button onClick={() => setActiveSector(null)} className="p-2 bg-white/20 hover:bg-white/40 rounded-full transition-colors" title="Volver al Menú">
+                <X className="w-8 h-8" />
+              </button>
+           </div>
+           
+           {/* CUERPO PRINCIPAL (A la espera de tus tareas) */}
+           <div className="p-8 text-center py-20">
+              <ClipboardList className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-700 mb-2">Base de datos en preparación</h3>
+              <p className="text-slate-500 max-w-md mx-auto">
+                Acá van a aparecer las planillas de los turnos de mañana y tarde, listas para que los chicos puedan tildar cada tarea.
+              </p>
+           </div>
+
         </div>
-        <h2 className="text-4xl font-black text-slate-800 mb-4">Bienvenidas al Spot!</h2>
-        <p className="text-lg text-slate-500 mb-10 max-w-md font-medium">El tablero de tareas diarias, checklists y control de stock está en construcción.</p>
-        <button onClick={() => setActiveSector(null)} className="px-6 py-3 bg-white border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 hover:text-orange-500 transition-colors shadow-sm">
-          ← VOLVER A SELECCIÓN
-        </button>
       </div>
     );
   }
