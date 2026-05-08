@@ -6,6 +6,8 @@ import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs 
 // IMPORTACIÓN DE ICONOS PERSONALIZADOS
 import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
 import SpotIcon from './assets/spot.png';   // Ruta a tu imagen de texto manuscrito "Spot!"
+import AxionLogo from './assets/logo.png'; 
+// 
 
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
@@ -530,10 +532,14 @@ export default function App() {
   // ==========================================
   if (!isAppUnlocked) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 animate-in fade-in duration-500">
+      <div className="min-h-screen bg-[#D6006E] flex items-center justify-center p-4 animate-in fade-in duration-500">
         <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Fuel className="w-10 h-10" />
+        <div className="w-28 h-28 flex items-center justify-center mx-auto mb-4">
+            <img 
+              src={AxionLogo} 
+              alt="Logo AXION" 
+              className="w-full h-full object-contain" 
+            />
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Panel Operativo</h2>
           <p className="text-slate-500 text-sm mb-8">Ingrese su PIN de playa para continuar</p>
@@ -556,7 +562,7 @@ export default function App() {
               if (appPinInput === '6227') setIsAppUnlocked(true);
               else { alert('PIN incorrecto'); setAppPinInput(''); }
             }} 
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center justify-center gap-2"
+            className="w-full bg-[#61213D] hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
           >
             INGRESAR <ArrowRight className="w-5 h-5" />
           </button>
@@ -570,7 +576,7 @@ export default function App() {
   // ==========================================
   if (activeSector === null) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
+      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
         <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">SELECCIONE SECTOR</h1>
         <div className="flex flex-col md:flex-row gap-8">
           
@@ -603,46 +609,7 @@ export default function App() {
       </div>
     );
   }
-// ==========================================
-  // PANTALLA DE INGRESO (PIN OPERATIVO)
-  // ==========================================
-  if (!isAppUnlocked) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 animate-in fade-in duration-500">
-        <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
-          {/* Si no tenés el logo en la carpeta, aparecerá el ícono de surtidor */}
-          <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Fuel className="w-10 h-10" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Panel Operativo</h2>
-          <p className="text-slate-500 text-sm mb-8">Ingrese su PIN de playa para continuar</p>
-          
-          <input 
-            type="password" 
-            value={appPinInput} 
-            onChange={(e) => setAppPinInput(e.target.value)} 
-            onKeyDown={(e) => { 
-              if (e.key === 'Enter') {
-                if (appPinInput === '6227') setIsAppUnlocked(true);
-                else { alert('PIN incorrecto'); setAppPinInput(''); }
-              }
-            }}
-            className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-bold text-slate-700 tracking-widest focus:border-indigo-500 outline-none transition-colors" 
-            placeholder="••••" 
-          />
-          <button 
-            onClick={() => {
-              if (appPinInput === '6227') setIsAppUnlocked(true);
-              else { alert('PIN incorrecto'); setAppPinInput(''); }
-            }} 
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center justify-center gap-2"
-          >
-            INGRESAR <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
+
   const orderCotization = calcularCostoPedido();
 
   // ==========================================
