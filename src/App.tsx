@@ -3,7 +3,9 @@ import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs } from 'firebase/firestore';
-
+// IMPORTACIÓN DE ICONOS PERSONALIZADOS
+import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
+import SpotIcon from './assets/spot.png';   // Ruta a tu imagen de texto manuscrito "Spot!"
 
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
@@ -571,17 +573,27 @@ export default function App() {
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
         <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">SELECCIONE SECTOR</h1>
         <div className="flex flex-col md:flex-row gap-8">
-          <button onClick={() => setActiveSector('playa')} className="bg-indigo-600 w-56 h-56 rounded-[30px] flex flex-col items-center justify-center text-white shadow-2xl shadow-indigo-500/20 hover:scale-105 transition-all">
-            <Fuel className="w-16 h-16 mb-4" /> <span className="text-2xl font-bold tracking-widest">PLAYA</span>
+          {/* BOTÓN PLAYA (CON ICONO DE SURTIDOR FUCSIA) */}
+          <button onClick={() => setActiveSector('playa')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:scale-105 hover:bg-slate-50 transition-all p-12">
+            <img 
+              src={PlayaIcon} 
+              alt="Sector Playa" 
+              className="w-full h-auto object-contain" // Esto hace que la imagen se adapte al botón
+            />
           </button>
-          <button onClick={() => setActiveSector('spot')} className="bg-orange-500 w-56 h-56 rounded-[30px] flex flex-col items-center justify-center text-white shadow-2xl shadow-orange-500/20 hover:scale-105 transition-all">
-            <Coffee className="w-16 h-16 mb-4" /> <span className="text-2xl font-bold tracking-widest">SPOT!</span>
+          
+          {/* BOTÓN SPOT! (CON LOGO DE TEXTO MANUSCRITO FUCSIA) */}
+          <button onClick={() => setActiveSector('spot')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:scale-105 hover:bg-slate-50 transition-all p-12">
+            <img 
+              src={SpotIcon} 
+              alt="Sector Spot!" 
+              className="w-full h-auto object-contain" // Esto hace que el logo se adapte al botón
+            />
           </button>
         </div>
       </div>
     );
   }
-
   // ==========================================
   // 3. PANTALLA EN CONSTRUCCIÓN DEL SPOT
   // ==========================================
