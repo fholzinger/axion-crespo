@@ -5,21 +5,33 @@ const SPOT_TEAM = [
   { id: 'fiorella', name: 'FIORELLA' }
 ];
 const SPOT_TASKS = [
-  { id: 'S1', title: 'Hornear medialunas', category: 'TAREAS', shift: 'MAÑANA', detail: '06:00 hs / 07:00 hs (Feriados)', days: [0,1,2,3,4,5,6] },
-  { id: 'S2', title: 'Carlitos, Pebetes y Miga', category: 'TAREAS', shift: 'MAÑANA', detail: 'Turno mañana', days: [0,1,2,3,4,5,6] },
-  { id: 'S3', title: 'Hornear empanadas', category: 'TAREAS', shift: 'AMBOS', detail: '10:00 - 12:30 y 18:00 hs', days: [0,1,2,3,4,5,6] },
-  { id: 'S4', title: 'Cortar Jamón y Quesos', category: 'TAREAS', shift: 'TARDE', detail: '15:30 hs', days: [1,3,5] },
-  { id: 'C1', title: 'Compra Verdulería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Jueves', days: [4] },
-  { id: 'C2', title: 'Compra Productos Limpieza', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
-  { id: 'C3', title: 'Compra Súper y Carne', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Viernes', days: [5] },
-  { id: 'P1', title: 'Pedido Potigian', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Viernes antes 13hs', days: [5] },
-  { id: 'P2', title: 'Pedido Coca Cola', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
-  { id: 'P3', title: 'Pedido Massalin', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Martes / Jueves', days: [2,4] },
-  { id: 'P4', title: 'Pedido La Familia / Don Lucas', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Lunes', days: [1] },
-  { id: 'L1', title: 'Limpieza Horno', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Diario', days: [0,1,2,3,4,5,6] },
-  { id: 'L2', title: 'Limpieza Caramelera', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
-  { id: 'L3', title: 'Limpieza Vidrios', category: 'LIMPIEZA', shift: 'AMBOS', detail: 'Diario', days: [0,1,2,3,4,5,6] }
+  // --- PRODUCCIÓN / ELABORACIÓN ---
+  { id: 'S1', title: 'Hornear medialunas', category: 'TAREAS', shift: 'MAÑANA', detail: '06:00 hs (Habitual) / 07:00 hs (Feriados)' },
+  { id: 'S2', title: 'Elaboración de Carlitos, Pebetes y Sándwich de miga', category: 'TAREAS', shift: 'MAÑANA', detail: 'Turno mañana' },
+  { id: 'S3', title: 'Hornear empanadas', category: 'TAREAS', shift: 'AMBOS', detail: 'Horarios: 10:00 - 12:30 y 18:00 hs' },
+  { id: 'S4', title: 'Cortar Jamón y Quesos (Barra/Muzza)', category: 'TAREAS', shift: 'TARDE', detail: 'Día por medio - 15:30 hs' },
+
+  // --- COMPRAS (Aparecen según el día) ---
+  { id: 'C1', title: 'Compra Verdulería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Jueves - Realizar en el día' },
+  { id: 'C2', title: 'Compra Productos de Limpieza', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Miércoles - Realizar en el día' },
+  { id: 'C3', title: 'Compra Supermercado y Carnicería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Viernes - Realizar en el día' },
+
+  // --- PEDIDOS ---
+  { id: 'P1', title: 'Pedido Potigian', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Viernes antes de las 13:00 hs' },
+  { id: 'P2', title: 'Pedido Coca Cola', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Miércoles' },
+  { id: 'P3', title: 'Pedido Massalin / Horizonte', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Martes / Jueves' },
+  { id: 'P4', title: 'Pedido La Familia / Don Lucas', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Lunes' },
+
+  // --- LIMPIEZA ---
+  { id: 'L1', title: 'Limpieza Horno con Vinagre', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Todos los días' },
+  { id: 'L2', title: 'Limpieza de Caramelera', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Miércoles' },
+  { id: 'L3', title: 'Limpieza de Muebles y Vidrios', category: 'LIMPIEZA', shift: 'AMBOS', detail: 'Frecuencia diaria' }
 ];
+import React, { useState, useMemo, useEffect } from 'react';
+import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3 } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs } from 'firebase/firestore';
 // IMPORTACIÓN DE ICONOS PERSONALIZADOS
 import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
 import AxionLogo from './assets/logo.png'; 
@@ -597,134 +609,143 @@ if (activeSector === 'spot') {
   };
 
   // ==========================================
+  // PANTALLA DE CARGA 
   // ==========================================
-  // 1. PIN DE ACCESO GLOBAL (PLAYA)
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-lg flex flex-col items-center max-w-sm w-full">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+          <h2 className="text-xl font-bold text-slate-800">Conectando...</h2>
+          <p className="text-slate-500 text-center mt-2 text-sm">Rescatando información previa y sincronizando la estación...</p>
+        </div>
+      </div>
+    );
+  }
+  // ==========================================
+  // 1. PANTALLA DE INGRESO (PIN OPERATIVO: 6227)
   // ==========================================
   if (!isAppUnlocked) {
     return (
       <div className="min-h-screen bg-[#D6006E] flex items-center justify-center p-4 animate-in fade-in duration-500">
         <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
-          <img src={AxionLogo} alt="Logo" className="w-28 h-28 mx-auto mb-4 object-contain" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-2 italic">Panel Operativo</h2>
-          <p className="text-slate-500 text-sm mb-8 font-bold">Ingrese su PIN para continuar</p>
+        <div className="w-28 h-28 flex items-center justify-center mx-auto mb-4">
+            <img 
+              src={AxionLogo} 
+              alt="Logo AXION" 
+              className="w-full h-full object-contain" 
+            />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Panel Operativo</h2>
+          <p className="text-slate-500 text-sm mb-8">Ingrese su PIN de playa para continuar</p>
+          
           <input 
-            type="password" autoFocus
+            type="password" 
             value={appPinInput} 
-            onChange={(e) => {
-              setAppPinInput(e.target.value);
-              if (e.target.value === '6227') setIsAppUnlocked(true);
-            }} 
-            className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-black text-slate-700 tracking-widest outline-none focus:border-[#D6006E]" 
+            onChange={(e) => setAppPinInput(e.target.value)} 
+            onKeyDown={(e) => { 
+              if (e.key === 'Enter') {
+                if (appPinInput === '6227') setIsAppUnlocked(true);
+                else { alert('PIN incorrecto'); setAppPinInput(''); }
+              }
+            }}
+            className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-bold text-slate-700 tracking-widest focus:border-indigo-500 outline-none transition-colors" 
             placeholder="••••" 
           />
-          <p className="text-[10px] text-slate-300 uppercase font-black tracking-widest italic">Axion Energy Crespo</p>
+          <button 
+            onClick={() => {
+              if (appPinInput === '6227') setIsAppUnlocked(true);
+              else { alert('PIN incorrecto'); setAppPinInput(''); }
+            }} 
+            className="w-full bg-[#61213D] hover:opacity-90 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
+          >
+            INGRESAR <ArrowRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     );
   }
-
-  // ==========================================
-  // 2. SECTOR SPOT! (CON PIN 3071 Y FILTRO DÍA)
+// ==========================================
+  // BLOQUE DE EMERGENCIA - SECTOR SPOT!
   // ==========================================
   if (activeSector === 'spot') {
-    if (!isSpotUnlocked) {
-      return (
-        <div className="min-h-screen bg-[#D6006E] flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center border-4 border-white/10">
-            <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">☕</div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2 uppercase italic">Acceso Spot!</h2>
-            <p className="text-slate-500 text-sm mb-8 font-bold">PIN de Cocina</p>
-            <input 
-              type="password" autoFocus
-              className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-black text-[#D6006E] tracking-[0.3em] outline-none focus:border-[#D6006E]"
-              placeholder="••••"
-              onChange={(e) => { if (e.target.value === '3071') setIsSpotUnlocked(true); }}
-            />
-            <button onClick={() => setActiveSector(null)} className="w-full text-slate-400 font-bold text-xs underline uppercase italic">Volver al Menú</button>
-          </div>
-        </div>
-      );
-    }
+    const TAREAS_LOCALES = [
+      { id: 'S1', title: 'Hornear medialunas', shift: 'MAÑANA', detail: '06:00 hs' },
+      { id: 'S2', title: 'Sándwich de miga / Pebetes', shift: 'MAÑANA', detail: 'Turno mañana' },
+      { id: 'S3', title: 'Hornear empanadas', shift: 'AMBOS', detail: '10:00 - 12:30 / 18:00 hs' },
+      { id: 'L1', title: 'Limpieza Horno', shift: 'MAÑANA', detail: 'Todos los días' }
+    ];
 
     if (!spotOperator) {
       return (
-        <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 text-white animate-in fade-in">
+        <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 text-white">
           <div className="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md text-center">
-            <h2 className="text-3xl font-black text-slate-800 mb-8 uppercase italic">¿Quién inicia?</h2>
+            <h2 className="text-2xl font-black text-slate-800 mb-8 uppercase italic">¿Quién inicia el turno?</h2>
             <div className="flex flex-col gap-4">
-              {SPOT_TEAM.map(member => (
-                <button key={member.id} onClick={() => setSpotOperator(member.name)} className="w-full py-5 bg-slate-100 hover:bg-[#D6006E] hover:text-white text-slate-800 font-black rounded-2xl transition-all text-xl shadow-sm border-b-4 border-slate-200">{member.name}</button>
+              {['CINTIA', 'TATIANA', 'FIORELLA'].map(name => (
+                <button key={name} onClick={() => setSpotOperator(name)} className="py-5 bg-slate-100 text-slate-800 font-black rounded-2xl text-xl hover:bg-[#D6006E] hover:text-white transition-all">{name}</button>
               ))}
             </div>
-            <button onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} className="mt-10 text-slate-300 font-bold text-xs underline uppercase">Salir</button>
+            <button onClick={() => setActiveSector(null)} className="mt-8 text-slate-300 font-bold text-xs underline">VOLVER</button>
           </div>
         </div>
       );
     }
 
-    const today = new Date().getDay();
-    const tasksToShow = SPOT_TASKS.filter(t => (t.days?.includes(today) || !t.days) && (t.shift === 'AMBOS' || t.shift === spotTab.toUpperCase()) && !spotChecklist[t.id]);
-
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 font-sans">
-        <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200">
-           <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
-              <span className="font-black italic uppercase text-xl italic">SPOT! | {spotOperator}</span>
-              <button onClick={() => setSpotOperator(null)} className="text-[10px] bg-white/20 px-3 py-2 rounded-full font-black uppercase">Cambiar</button>
-           </div>
-           <div className="flex border-b border-slate-200 bg-white">
-             <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ MAÑANA</button>
-             <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>🌙 TARDE</button>
-           </div>
-           <div className="p-4 space-y-3 min-h-[450px] bg-slate-50/50">
-              {tasksToShow.length === 0 ? (
-                <div className="py-20 text-center font-bold text-slate-300 italic uppercase">¡Todo listo por hoy!</div>
-              ) : (
-                tasksToShow.map(task => (
-                  <div key={task.id} className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
-                    <p className="font-black text-slate-800 text-lg leading-tight">{task.title}</p>
-                    <p className="text-[11px] text-[#D6006E] font-bold uppercase italic mb-4">{task.detail}</p>
-                    <div className="flex gap-2">
-                      <button onClick={() => updateSpotTask(task.id, 'OK')} className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-black text-xs shadow-md">Realizado</button>
-                      <button onClick={() => updateSpotTask(task.id, 'NO')} className="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-xs shadow-md">No hice</button>
-                    </div>
-                  </div>
-                ))
-              )}
-           </div>
-           <button onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} className="w-full py-5 bg-white text-slate-300 font-black text-xs uppercase border-t tracking-widest">Cerrar Tablero</button>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
+        <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-xl overflow-hidden">
+          <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white font-black italic">
+            <span>SPOT! - {spotOperator}</span>
+            <button onClick={() => setSpotOperator(null)} className="text-[10px] bg-white/20 px-3 py-1 rounded-full uppercase">Cambiar</button>
+          </div>
+          <div className="p-6 space-y-4">
+            {TAREAS_LOCALES.map(t => (
+              <div key={t.id} className="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100">
+                <p className="font-black text-slate-800 text-lg">{t.title}</p>
+                <p className="text-xs text-[#D6006E] font-bold mb-4 italic">{t.detail}</p>
+                <div className="flex gap-2">
+                  <button onClick={() => updateSpotTask(t.id, 'OK')} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-md">Realizado</button>
+                  <button onClick={() => updateSpotTask(t.id, 'NO')} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-black text-xs shadow-md">No hice</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => setActiveSector(null)} className="w-full py-5 text-slate-300 font-bold text-xs uppercase tracking-widest">Salir</button>
         </div>
       </div>
     );
   }
-
-  // ==========================================
-  // 3. MENÚ DE SELECCIÓN (HOME)
+ // ==========================================
+  // PANTALLA DE SELECCIÓN DE SECTOR
   // ==========================================
   if (activeSector === null) {
     return (
-      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center gap-10 p-4 animate-in fade-in duration-500">
-        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight italic uppercase text-center">Seleccione Sector</h1>
+      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
+        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">SELECCIONE SECTOR</h1>
         <div className="flex flex-col md:flex-row gap-8">
-          <button onClick={() => setActiveSector('playa')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all p-12">
+          
+          <button onClick={() => setActiveSector('playa')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:scale-105 hover:bg-slate-50 transition-all p-12">
             <img src={PlayaIcon} alt="Playa" className="w-full h-auto object-contain" />
           </button>
-          <button 
+          
+         {/* BOTÓN SECTOR SPOT! */}
+         <button 
             onClick={() => setActiveSector('spot')} 
-            className="bg-white w-72 h-72 rounded-[40px] flex flex-col items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all group border-4 border-transparent hover:border-[#D6006E]"
+            className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all group border-4 border-transparent hover:border-[#D6006E]"
           >
-            <div className="w-44 h-40 flex items-center justify-center mb-2">
-              <img 
-                src={SpotLogo} 
-                alt="Spot!" 
-                className="max-w-full max-h-full object-contain group-hover:rotate-3 transition-transform" 
-                onError={(e) => { e.currentTarget.src = 'https://img.icons8.com/color/512/coffee-to-go.png' }}
-              />
+            <div className="flex flex-col items-center">
+               <img 
+                 src="/spot.png" 
+                 alt="Spot!" 
+                 className="w-48 h-auto object-contain group-hover:rotate-3 transition-transform" 
+                 onError={(e) => { e.currentTarget.src = 'https://img.icons8.com/color/512/coffee-to-go.png' }}
+               />
+               <span className="text-[#D6006E] font-black italic mt-2 tracking-tighter text-xl">¡ENTRAR!</span>
             </div>
-            <span className="text-[#D6006E] font-black italic mt-1 tracking-tighter text-xl uppercase">¡Entrar!</span>
           </button>
+          
         </div>
-        <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Axion Energy Crespo</p>
       </div>
     );
   }
