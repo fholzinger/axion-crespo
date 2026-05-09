@@ -5,27 +5,21 @@ const SPOT_TEAM = [
   { id: 'fiorella', name: 'FIORELLA' }
 ];
 const SPOT_TASKS = [
-  // --- PRODUCCIÓN / ELABORACIÓN ---
-  { id: 'S1', title: 'Hornear medialunas', category: 'TAREAS', shift: 'MAÑANA', detail: '06:00 hs (Habitual) / 07:00 hs (Feriados)' },
-  { id: 'S2', title: 'Elaboración de Carlitos, Pebetes y Sándwich de miga', category: 'TAREAS', shift: 'MAÑANA', detail: 'Turno mañana' },
-  { id: 'S3', title: 'Hornear empanadas', category: 'TAREAS', shift: 'AMBOS', detail: 'Horarios: 10:00 - 12:30 y 18:00 hs' },
-  { id: 'S4', title: 'Cortar Jamón y Quesos (Barra/Muzza)', category: 'TAREAS', shift: 'TARDE', detail: 'Día por medio - 15:30 hs' },
-
-  // --- COMPRAS (Aparecen según el día) ---
-  { id: 'C1', title: 'Compra Verdulería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Jueves - Realizar en el día' },
-  { id: 'C2', title: 'Compra Productos de Limpieza', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Miércoles - Realizar en el día' },
-  { id: 'C3', title: 'Compra Supermercado y Carnicería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Viernes - Realizar en el día' },
-
-  // --- PEDIDOS ---
-  { id: 'P1', title: 'Pedido Potigian', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Viernes antes de las 13:00 hs' },
-  { id: 'P2', title: 'Pedido Coca Cola', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Miércoles' },
-  { id: 'P3', title: 'Pedido Massalin / Horizonte', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Martes / Jueves' },
-  { id: 'P4', title: 'Pedido La Familia / Don Lucas', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Lunes' },
-
-  // --- LIMPIEZA ---
-  { id: 'L1', title: 'Limpieza Horno con Vinagre', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Todos los días' },
-  { id: 'L2', title: 'Limpieza de Caramelera', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Miércoles' },
-  { id: 'L3', title: 'Limpieza de Muebles y Vidrios', category: 'LIMPIEZA', shift: 'AMBOS', detail: 'Frecuencia diaria' }
+  { id: 'S1', title: 'Hornear medialunas', category: 'PRODUCCIÓN', shift: 'MAÑANA', detail: '06:00 hs / 07:00 hs (Feriados)', days: [0,1,2,3,4,5,6] },
+  { id: 'S2', title: 'Carlitos, Pebetes y Miga', category: 'PRODUCCIÓN', shift: 'MAÑANA', detail: 'Turno mañana', days: [0,1,2,3,4,5,6] },
+  { id: 'S3', title: 'Hornear empanadas', category: 'PRODUCCIÓN', shift: 'AMBOS', detail: '10:00 - 12:30 y 18:00 hs', days: [0,1,2,3,4,5,6] },
+  { id: 'S4', title: 'Cortar Jamón y Quesos', category: 'PRODUCCIÓN', shift: 'TARDE', detail: '15:30 hs', days: [1,3,5] },
+  { id: 'P4', title: 'Pedido La Familia / Don Lucas', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Lunes', days: [1] },
+  { id: 'P3a', title: 'Pedido Massalin / Horizonte', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Martes', days: [2] },
+  { id: 'P2', title: 'Pedido Coca Cola', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
+  { id: 'C2', title: 'Compra Productos Limpieza', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
+  { id: 'L2', title: 'Limpieza de Caramelera', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
+  { id: 'P3b', title: 'Pedido Massalin / Horizonte', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Jueves', days: [4] },
+  { id: 'C1', title: 'Compra Verdulería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Jueves', days: [4] },
+  { id: 'P1', title: 'Pedido Potigian', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Viernes (antes 13hs)', days: [5] },
+  { id: 'C3', title: 'Compra Súper y Carnicería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Viernes', days: [5] },
+  { id: 'L1', title: 'Limpieza Horno', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Diaria', days: [0,1,2,3,4,5,6] },
+  { id: 'L3', title: 'Limpieza Muebles y Vidrios', category: 'LIMPIEZA', shift: 'AMBOS', detail: 'Diaria', days: [0,1,2,3,4,5,6] }
 ];
 import React, { useState, useMemo, useEffect } from 'react';
 import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3 } from 'lucide-react';
@@ -35,7 +29,7 @@ import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs 
 // IMPORTACIÓN DE ICONOS PERSONALIZADOS
 import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
 import AxionLogo from './assets/logo.png'; 
-// 
+import SpotLogo from './assets/spot.png'; //
 
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
@@ -379,90 +373,102 @@ export default function App() {
 
 // --- A. SECTOR SPOT! ---
 if (activeSector === 'spot') {
-  // 1. Validación de PIN
-  if (!isSpotUnlocked) {
-    return (
-      <div className="min-h-screen bg-[#D6006E] flex items-center justify-center p-4 font-sans">
-        <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">☕</div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2 uppercase italic">Acceso Spot!</h2>
-          <p className="text-slate-500 text-sm mb-8 font-bold">Ingrese el PIN de cocina</p>
-          <input 
-            type="password" 
-            autoFocus
-            className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-black text-[#D6006E] tracking-[0.3em] outline-none focus:border-[#D6006E]"
-            placeholder="••••"
-            onChange={(e) => {
-              if (e.target.value === '3071') setIsSpotUnlocked(true);
-            }}
-          />
-          <button onClick={() => setActiveSector(null)} className="w-full text-slate-400 font-bold text-xs underline uppercase tracking-widest">Volver al Menú</button>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. Selección de Operadora
+  // Si no hay operadora elegida, mostramos la selección de nombres
   if (!spotOperator) {
     return (
-      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 text-white font-sans animate-in fade-in duration-500">
+      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 animate-in fade-in">
         <div className="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md text-center border-4 border-white/20">
-          <h2 className="text-3xl font-black text-slate-800 mb-2 uppercase italic">¡BIENVENIDAS!</h2>
-          <p className="text-slate-400 font-bold mb-8 text-xs uppercase tracking-widest text-center">Panel de Control Spot!</p>
+          <h2 className="text-3xl font-black text-slate-800 mb-8 uppercase italic">¿Quién inicia?</h2>
           <div className="flex flex-col gap-4">
-            {SPOT_TEAM.map(member => (
-              <button
-                key={member.id}
-                onClick={() => setSpotOperator(member.name)}
+            {SPOT_TEAM.map(m => (
+              <button 
+                key={m.id} 
+                onClick={() => setSpotOperator(m.name)} 
                 className="w-full py-5 bg-slate-100 hover:bg-[#D6006E] hover:text-white text-slate-800 font-black rounded-2xl transition-all text-xl shadow-sm border-b-4 border-slate-200"
               >
-                {member.name}
+                {m.name}
               </button>
             ))}
           </div>
-          <button onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} className="mt-10 text-slate-400 font-bold text-xs underline uppercase">Salir</button>
+          <button onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} className="mt-10 text-slate-400 font-bold text-xs underline uppercase">Volver</button>
         </div>
       </div>
     );
   }
 
-  // 3. Tablero de Tareas
-  const tasksToShow = SPOT_TASKS.filter(t => (t.shift === 'AMBOS' || t.shift === spotTab.toUpperCase()) && !spotChecklist[t.id]);
+  // Lógica de filtrado de tareas: por día, por turno y ocultar las ya hechas
+  const today = new Date().getDay(); // 0 es Domingo, 1 Lunes...
+  const tasksToShow = SPOT_TASKS.filter(t => 
+    t.days.includes(today) && 
+    (t.shift === 'AMBOS' || t.shift === spotTab.toUpperCase()) && 
+    !spotChecklist[t.id]
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 font-sans animate-in zoom-in-95 duration-300">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 animate-in zoom-in-95">
       <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200">
-         <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
-            <span className="font-black italic uppercase text-xl">SPOT! | {spotOperator}</span>
-            <button onClick={() => setSpotOperator(null)} className="text-[10px] bg-white/20 px-3 py-2 rounded-full font-black uppercase">Cambiar</button>
-         </div>
-         <div className="flex border-b border-slate-200 bg-white">
-           <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ TURNO MAÑANA</button>
-           <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>🌙 TURNO TARDE</button>
-         </div>
-         <div className="p-4 space-y-3 min-h-[450px] bg-slate-50/50">
-            {tasksToShow.length === 0 ? (
-              <div className="py-20 text-center font-bold text-slate-300 italic uppercase">¡Todo listo por aquí!</div>
-            ) : (
-              tasksToShow.map(task => (
-                <div key={task.id} className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
-                  <span className="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-black uppercase">{task.category}</span>
-                  <p className="font-black text-slate-800 text-lg leading-tight mt-1">{task.title}</p>
-                  <p className="text-[11px] text-[#D6006E] font-bold uppercase italic mb-4 opacity-80">{task.detail}</p>
+        
+        {/* Cabecera */}
+        <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
+          <span className="font-black italic uppercase text-xl">SPOT! | {spotOperator}</span>
+          <button onClick={() => setSpotOperator(null)} className="text-[10px] bg-white/20 px-3 py-2 rounded-full font-black uppercase">Cambiar</button>
+        </div>
+        
+        {/* Selector de Turno */}
+        <div className="flex border-b border-slate-200 bg-white">
+          <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ MAÑANA</button>
+          <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>🌙 TARDE</button>
+        </div>
+
+        {/* Listado de Tareas */}
+        <div className="p-4 space-y-3 min-h-[450px] bg-slate-50/50">
+          {tasksToShow.length === 0 ? (
+            <div className="py-20 text-center font-bold text-slate-300 italic uppercase">¡Todo listo por hoy!</div>
+          ) : (
+            tasksToShow.map(task => (
+              <div key={task.id} className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span className="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-black uppercase">{task.category}</span>
+                <p className="font-black text-slate-800 text-lg leading-tight mt-1">{task.title}</p>
+                <p className="text-[11px] text-[#D6006E] font-bold uppercase italic mb-4 opacity-80">{task.detail}</p>
+                
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => updateSpotTask(task.id, 'REALIZADO')} 
+                    className="w-full bg-emerald-600 text-white py-3 rounded-xl font-black text-xs shadow-md active:scale-95 uppercase"
+                  >
+                    Realizado
+                  </button>
                   <div className="flex gap-2">
-                    <button onClick={() => updateSpotTask(task.id, 'OK')} className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-black text-xs shadow-md active:scale-95">REALIZADO</button>
-                    <button onClick={() => updateSpotTask(task.id, 'NO')} className="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-xs shadow-md active:scale-95">NO HICE</button>
+                    <button 
+                      onClick={() => updateSpotTask(task.id, 'NO REALIZADO')} 
+                      className="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-[9px] shadow-md active:scale-95 uppercase"
+                    >
+                      No Realizado
+                    </button>
+                    <button 
+                      onClick={() => updateSpotTask(task.id, 'NO FUE NECESARIO')} 
+                      className="flex-1 bg-slate-400 text-white py-3 rounded-xl font-black text-[9px] shadow-md active:scale-95 uppercase"
+                    >
+                      No fue necesario
+                    </button>
                   </div>
                 </div>
-              ))
-            )}
-         </div>
-         <button onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} className="w-full py-5 bg-white text-slate-300 font-black text-xs uppercase tracking-widest border-t">Cerrar Tablero</button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Botón Salir */}
+        <button 
+          onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} 
+          className="w-full py-5 bg-white text-slate-300 font-black text-xs uppercase border-t tracking-widest italic"
+        >
+          Cerrar Tablero
+        </button>
       </div>
     </div>
   );
-}
-
+} // <--- Esta es la llave que cierra el bloque if (activeSector === 'spot')
   // 2. MENÚ DE SELECCIÓN (HOME)
   if (activeSector === null) {
     return (
