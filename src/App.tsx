@@ -8,9 +8,9 @@ import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs 
 import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
 import SpotIcon from './assets/spot.png';   // Ruta a tu imagen de texto manuscrito "Spot!"
 import AxionLogo from './assets/logo.png'; 
-//
+
 // ==========================================
-// NUEVA BASE DE DATOS DEL SPOT (CRONOGRAMA ACTUALIZADO)
+// BASE DE DATOS DEL SPOT!
 // ==========================================
 const SPOT_TASKS = [
   // Tareas Diarias y Elaboración
@@ -55,7 +55,6 @@ const SPOT_TASKS = [
   { id: 'l8', title: 'REVISIÓN VENCIMIENTOS (DOMINGOS)', category: 'REVISIONES', shift: 'MAÑANA' },
   { id: 'l9', title: 'REVISIÓN PRECIOS IMPRESOS', category: 'REVISIONES', shift: 'MAÑANA' }
 ];
- 
 
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
@@ -157,6 +156,9 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [spotTab, setSpotTab] = useState<'mañana' | 'tarde'>('mañana');
+  const [spotUnlocked, setSpotUnlocked] = useState(false);
+  const [spotPinInput, setSpotPinInput] = useState('');
+  const [responsableSpot, setResponsableSpot] = useState('');
   const [spotChecklist, setSpotChecklist] = useState<Record<string, string>>({});
 
   const updateSpotTask = (taskId: string, status: string) => {
@@ -650,56 +652,102 @@ export default function App() {
   // 3. PANTALLA DEL SPOT! (CHECKLIST)
   // ==========================================
   if (activeSector === 'spot') {
+    // 1. PANTALLA DE PIN PARA SPOT
+    if (!spotUnlocked) {
+      return (
+        <div className="min-h-screen bg-[#D6006E] flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-[30px] shadow-2xl max-w-sm w-full text-center">
+            <Lock className="w-12 h-12 mx-auto mb-4 text-[#D6006E]" />
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Acceso Spot</h2>
+            <p className="text-slate-500 text-sm mb-6">Ingrese PIN de acceso</p>
+            <input 
+              type="password" 
+              value={spotPinInput} 
+              onChange={(e) => setSpotPinInput(e.target.value)}
+              className="w-full p-4 border-2 border-slate-200 rounded-xl text-center text-3xl mb-6 font-bold outline-none focus:border-[#D6006E]"
+              placeholder="••••"
+            />
+            <button 
+              onClick={() => {
+                if (spotPinInput === '3071') setSpotUnlocked(true); // Usamos el mismo PIN operativo
+                else { alert('PIN Incorrecto'); setSpotPinInput(''); }
+              }}
+              className="w-full bg-[#61213D] text-white py-4 rounded-xl font-bold"
+            >
+              DESBLOQUEAR
+            </button>
+            <button onClick={() => setActiveSector(null)} className="mt-4 text-slate-400 text-sm font-bold">VOLVER</button>
+          </div>
+        </div>
+      );
+    }
+
+    // 2. SELECCIÓN DE RESPONSABLE (Cintia, Fiorella, Tatiana)
+    if (!responsableSpot) {
+      return (
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-[30px] shadow-xl max-w-md w-full">
+            <h2 className="text-xl font-bold text-center mb-6 text-slate-800">¿Quién está en turno?</h2>
+            <div className="grid gap-4">
+              {['Cintia', 'Fiorella', 'Tatiana'].map(nombre => (
+                <button 
+                  key={nombre}
+                  onClick={() => setResponsableSpot(nombre)}
+                  className="w-full p-4 bg-slate-50 hover:bg-[#D6006E] hover:text-white border-2 border-slate-100 rounded-2xl font-bold text-lg transition-all flex items-center justify-between"
+                >
+                  {nombre} <ArrowRight className="w-5 h-5" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 3. PANTALLA PRINCIPAL DEL SPOT (Ya identificada)
     const displayedTasks = SPOT_TASKS.filter(task => 
-      task.shift === 'INGRESO' || task.shift === 'AMBOS' || task.shift === spotTab.toUpperCase()
+      task.shift === 'AMBOS' || task.shift === spotTab.toUpperCase()
     );
 
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-2 md:p-6 animate-in fade-in duration-300">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-2 md:p-6">
         <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden">
-           
-           {/* CABECERA */}
            <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
-              <h2 className="text-2xl font-black flex items-center gap-4">
-                CHECKLIST SPOT!
-              </h2>
-              <button onClick={() => setActiveSector(null)} className="p-2 bg-white/20 rounded-full">
+              <div>
+                <h2 className="text-2xl font-black">CHECKLIST SPOT!</h2>
+                <p className="text-xs opacity-80 font-bold flex items-center gap-1">
+                  <User className="w-3 h-3" /> OPERADOR: {responsableSpot.toUpperCase()}
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  setActiveSector(null);
+                  setSpotUnlocked(false);
+                  setResponsableSpot('');
+                }} 
+                className="p-2 bg-white/20 rounded-full"
+              >
                 <X className="w-6 h-6" />
               </button>
            </div>
            
-           {/* SELECTOR DE TURNO */}
+           {/* Selector de turno y lista de tareas... (el resto de tu código del spot) */}
            <div className="flex border-b border-slate-200">
-             <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-bold ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>
-                ☀️ Mañana
-             </button>
-             <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-bold ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>
-                🌙 Tarde
-             </button>
+             <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-bold ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ Mañana</button>
+             <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-bold ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>🌙 Tarde</button>
            </div>
 
-           {/* LISTA DE TAREAS */}
            <div className="p-4 space-y-4 bg-slate-50 min-h-[400px]">
               {displayedTasks.map(task => {
                 const status = spotChecklist[task.id] || null;
                 let cardStyle = "bg-white border-slate-200";
                 if (status === 'REALIZADO') cardStyle = "bg-green-50 border-green-400";
-                if (status === 'NO REALIZADO') cardStyle = "bg-red-50 border-red-400";
-                if (status === 'NO FUE NECESARIO') cardStyle = "bg-slate-100 border-slate-400";
-
                 return (
                   <div key={task.id} className={`flex flex-col gap-4 p-4 rounded-2xl border-2 transition-all ${cardStyle}`}>
                     <p className="font-bold text-slate-800">{task.title}</p>
                     <div className="flex gap-2">
-                      <button onClick={() => updateSpotTask(task.id, 'REALIZADO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'REALIZADO' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        REALIZADO
-                      </button>
-                      <button onClick={() => updateSpotTask(task.id, 'NO REALIZADO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'NO REALIZADO' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        NO REALIZADO
-                      </button>
-                      <button onClick={() => updateSpotTask(task.id, 'NO FUE NECESARIO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'NO FUE NECESARIO' ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        NO NECESARIO
-                      </button>
+                      <button onClick={() => updateSpotTask(task.id, 'REALIZADO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'REALIZADO' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-500'}`}>REALIZADO</button>
+                      <button onClick={() => updateSpotTask(task.id, 'NO REALIZADO')} className="flex-1 py-2 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-500">NO REALIZADO</button>
                     </div>
                   </div>
                 )
@@ -708,6 +756,7 @@ export default function App() {
         </div>
       </div>
     );
+  
   }
   const orderCotization = calcularCostoPedido();
 
