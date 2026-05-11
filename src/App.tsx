@@ -1,25 +1,16 @@
-
-const SPOT_TEAM = [
-  { id: 'cintia', name: 'CINTIA' },
-  { id: 'tatiana', name: 'TATIANA' },
-  { id: 'fiorella', name: 'FIORELLA' }
-];
+// ==========================================
+// BASE DE DATOS DEL SPOT!
+// ==========================================
 const SPOT_TASKS = [
-  { id: 'S1', title: 'Hornear medialunas', category: 'PRODUCCIÓN', shift: 'MAÑANA', detail: '06:00 hs / 07:00 hs (Feriados)', days: [0,1,2,3,4,5,6] },
-  { id: 'S2', title: 'Carlitos, Pebetes y Miga', category: 'PRODUCCIÓN', shift: 'MAÑANA', detail: 'Turno mañana', days: [0,1,2,3,4,5,6] },
-  { id: 'S3', title: 'Hornear empanadas', category: 'PRODUCCIÓN', shift: 'AMBOS', detail: '10:00 - 12:30 y 18:00 hs', days: [0,1,2,3,4,5,6] },
-  { id: 'S4', title: 'Cortar Jamón y Quesos', category: 'PRODUCCIÓN', shift: 'TARDE', detail: '15:30 hs', days: [1,3,5] },
-  { id: 'P4', title: 'Pedido La Familia / Don Lucas', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Lunes', days: [1] },
-  { id: 'P3a', title: 'Pedido Massalin / Horizonte', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Martes', days: [2] },
-  { id: 'P2', title: 'Pedido Coca Cola', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
-  { id: 'C2', title: 'Compra Productos Limpieza', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
-  { id: 'L2', title: 'Limpieza de Caramelera', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Miércoles', days: [3] },
-  { id: 'P3b', title: 'Pedido Massalin / Horizonte', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Jueves', days: [4] },
-  { id: 'C1', title: 'Compra Verdulería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Jueves', days: [4] },
-  { id: 'P1', title: 'Pedido Potigian', category: 'PEDIDOS', shift: 'MAÑANA', detail: 'Viernes (antes 13hs)', days: [5] },
-  { id: 'C3', title: 'Compra Súper y Carnicería', category: 'COMPRAS', shift: 'MAÑANA', detail: 'Viernes', days: [5] },
-  { id: 'L1', title: 'Limpieza Horno', category: 'LIMPIEZA', shift: 'MAÑANA', detail: 'Diaria', days: [0,1,2,3,4,5,6] },
-  { id: 'L3', title: 'Limpieza Muebles y Vidrios', category: 'LIMPIEZA', shift: 'AMBOS', detail: 'Diaria', days: [0,1,2,3,4,5,6] }
+  { id: '1', title: 'TOMA DE ASISTENCIA', category: 'TAREAS', shift: 'INGRESO' },
+  { id: '2', title: 'RECEPCIÓN DE PEDIDOS DEL DIA', category: 'PEDIDOS', shift: 'AMBOS' },
+  { id: '3', title: 'ARMADO Y CONTROL DE PEDIDOS AL PROVEEDOR', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: '4', title: 'COMPRAS AL SUPERMERCADO - FIAMBRES Y VERDURAS', category: 'COMPRAS', shift: 'MAÑANA' },
+  { id: '5', title: 'PLANILLA DE DEUDORES Y SISTEMA', category: 'TAREAS', shift: 'AMBOS' },
+  { id: '6', title: 'VENCIMIENTOS DE LA SEMANA SEGÚN FEPS', category: 'REVISIONES', shift: 'MAÑANA' },
+  { id: '7', title: 'ORDEN Y REPOSICIÓN DE CÁMARAS Y MOSTRADORES', category: 'TAREAS', shift: 'AMBOS' },
+  { id: '8', title: 'ROTULAR PRODUCTOS DE HELADERA', category: 'LIMPIEZA', shift: 'AMBOS' },
+  { id: '9', title: 'DESCARGAR LA CAFETERA', category: 'LIMPIEZA', shift: 'TARDE' }
 ];
 import React, { useState, useMemo, useEffect } from 'react';
 import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3 } from 'lucide-react';
@@ -28,8 +19,9 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs } from 'firebase/firestore';
 // IMPORTACIÓN DE ICONOS PERSONALIZADOS
 import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
+import SpotIcon from './assets/spot.png';   // Ruta a tu imagen de texto manuscrito "Spot!"
 import AxionLogo from './assets/logo.png'; 
-import SpotLogo from './assets/spot.png'; //
+// 
 
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
@@ -132,11 +124,11 @@ export default function App() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [spotTab, setSpotTab] = useState<'mañana' | 'tarde'>('mañana');
   const [spotChecklist, setSpotChecklist] = useState<Record<string, string>>({});
-  const [isSpotUnlocked, setIsSpotUnlocked] = useState(false);
+
   const updateSpotTask = (taskId: string, status: string) => {
     setSpotChecklist(prev => ({ ...prev, [taskId]: status }));
   };
-
+  
   // ==========================================
   // ESTADOS PRINCIPALES 
   // ==========================================
@@ -163,7 +155,6 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false); 
   const [pinInput, setPinInput] = useState('');
   const [modalConfig, setModalConfig] = useState<any>({ isOpen: false, type: 'info', title: '', message: '', inputValue: '', onConfirm: null });
-
 
   const closeModal = () => setModalConfig((prev: any) => ({ ...prev, isOpen: false }));
   const handleModalConfirm = () => { if (modalConfig.onConfirm) modalConfig.onConfirm(modalConfig.inputValue); closeModal(); };
@@ -363,131 +354,59 @@ export default function App() {
   const handleLogout = () => { setIsAdmin(false); setActiveTab('varillas'); };
 
   // ==========================================
-  // ESTADOS ADICIONALES PARA SPOT (Asegurate que estén con los otros useState)
+  // LÓGICA DE EDICIÓN MANUAL (EDITOR HISTORIAL)
   // ==========================================
-  const [spotOperator, setSpotOperator] = useState<string | null>(null);
+  const loadDataForDate = (selectedDate: string) => {
+    const existingLog = dailyLogs.find(log => log.date === selectedDate);
+    
+    if (existingLog) {
+      setManualEdit({
+        isOpen: true, id: existingLog.id, date: existingLog.date, responsable: existingLog.responsable,
+        tanks: { ...existingLog.tanks }
+      });
+    } else {
+      const priorLogs = dailyLogs.filter(log => log.date < selectedDate).sort((a,b) => b.date.localeCompare(a.date));
+      const lastLog = priorLogs.length > 0 ? priorLogs[0] : null;
 
-  // ==========================================
-  // LÓGICA DE RENDERIZADO DE SECTORES
-  // ==========================================
+      const freshTanks: any = {};
+      TANKS_CONFIG.forEach(t => {
+        freshTanks[t.id] = { inicio: lastLog ? lastLog.tanks[t.id].fin : 0, desc: 0, fin: 0, lv: 0 };
+      });
 
-// --- A. SECTOR SPOT! ---
-if (activeSector === 'spot') {
-  // Si no hay operadora elegida, mostramos la selección de nombres
-  if (!spotOperator) {
-    return (
-      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 animate-in fade-in">
-        <div className="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md text-center border-4 border-white/20">
-          <h2 className="text-3xl font-black text-slate-800 mb-8 uppercase italic">¿Quién inicia?</h2>
-          <div className="flex flex-col gap-4">
-            {SPOT_TEAM.map(m => (
-              <button 
-                key={m.id} 
-                onClick={() => setSpotOperator(m.name)} 
-                className="w-full py-5 bg-slate-100 hover:bg-[#D6006E] hover:text-white text-slate-800 font-black rounded-2xl transition-all text-xl shadow-sm border-b-4 border-slate-200"
-              >
-                {m.name}
-              </button>
-            ))}
-          </div>
-          <button onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} className="mt-10 text-slate-400 font-bold text-xs underline uppercase">Volver</button>
-        </div>
-      </div>
-    );
-  }
+      setManualEdit({
+        isOpen: true, id: null, date: selectedDate, responsable: 'Gerencia (Carga Manual)',
+        tanks: freshTanks
+      });
+    }
+  };
 
-  // Lógica de filtrado de tareas: por día, por turno y ocultar las ya hechas
-  const today = new Date().getDay(); // 0 es Domingo, 1 Lunes...
-  const tasksToShow = SPOT_TASKS.filter(t => 
-    t.days.includes(today) && 
-    (t.shift === 'AMBOS' || t.shift === spotTab.toUpperCase()) && 
-    !spotChecklist[t.id]
-  );
+  const handleManualTankChange = (tankId: string, field: string, value: string) => {
+    setManualEdit((prev: any) => ({
+      ...prev,
+      tanks: { ...prev.tanks, [tankId]: { ...prev.tanks[tankId], [field]: value } }
+    }));
+  };
 
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 animate-in zoom-in-95">
-      <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200">
-        
-        {/* Cabecera */}
-        <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
-          <span className="font-black italic uppercase text-xl">SPOT! | {spotOperator}</span>
-          <button onClick={() => setSpotOperator(null)} className="text-[10px] bg-white/20 px-3 py-2 rounded-full font-black uppercase">Cambiar</button>
-        </div>
-        
-        {/* Selector de Turno */}
-        <div className="flex border-b border-slate-200 bg-white">
-          <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ MAÑANA</button>
-          <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-black text-xs ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>🌙 TARDE</button>
-        </div>
+  const saveManualEntry = async () => {
+    if (!user) return;
+    const logIdToSave = manualEdit.id || Date.now();
+    const newLog: any = { id: logIdToSave, date: manualEdit.date, responsable: manualEdit.responsable, tanks: {} };
 
-        {/* Listado de Tareas */}
-        <div className="p-4 space-y-3 min-h-[450px] bg-slate-50/50">
-          {tasksToShow.length === 0 ? (
-            <div className="py-20 text-center font-bold text-slate-300 italic uppercase">¡Todo listo por hoy!</div>
-          ) : (
-            tasksToShow.map(task => (
-              <div key={task.id} className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
-                <span className="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-black uppercase">{task.category}</span>
-                <p className="font-black text-slate-800 text-lg leading-tight mt-1">{task.title}</p>
-                <p className="text-[11px] text-[#D6006E] font-bold uppercase italic mb-4 opacity-80">{task.detail}</p>
-                
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={() => updateSpotTask(task.id, 'REALIZADO')} 
-                    className="w-full bg-emerald-600 text-white py-3 rounded-xl font-black text-xs shadow-md active:scale-95 uppercase"
-                  >
-                    Realizado
-                  </button>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => updateSpotTask(task.id, 'NO REALIZADO')} 
-                      className="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-[9px] shadow-md active:scale-95 uppercase"
-                    >
-                      No Realizado
-                    </button>
-                    <button 
-                      onClick={() => updateSpotTask(task.id, 'NO FUE NECESARIO')} 
-                      className="flex-1 bg-slate-400 text-white py-3 rounded-xl font-black text-[9px] shadow-md active:scale-95 uppercase"
-                    >
-                      No fue necesario
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+    TANKS_CONFIG.forEach(tank => {
+      const tData = manualEdit.tanks[tank.id];
+      const inicio = parseFloat(tData.inicio) || 0;
+      const desc = parseFloat(tData.desc) || 0;
+      const fin = parseFloat(tData.fin) || 0;
+      newLog.tanks[tank.id] = { inicio, desc, fin, lv: inicio + desc - fin };
+    });
 
-        {/* Botón Salir */}
-        <button 
-          onClick={() => { setActiveSector(null); setIsSpotUnlocked(false); }} 
-          className="w-full py-5 bg-white text-slate-300 font-black text-xs uppercase border-t tracking-widest italic"
-        >
-          Cerrar Tablero
-        </button>
-      </div>
-    </div>
-  );
-} // <--- Esta es la llave que cierra el bloque if (activeSector === 'spot')
-  // 2. MENÚ DE SELECCIÓN (HOME)
-  if (activeSector === null) {
-    return (
-      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center gap-10 animate-in fade-in duration-500">
-        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight italic uppercase">Seleccione Sector</h1>
-        <div className="flex flex-col md:flex-row gap-8">
-          <button onClick={() => setActiveSector('playa')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl hover:scale-105 transition-all p-12">
-            <img src={PlayaIcon} alt="Playa" className="w-full h-auto object-contain" />
-          </button>
-          <button onClick={() => setActiveSector('spot')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all group border-4 border-transparent hover:border-[#D6006E]">
-            <div className="flex flex-col items-center">
-               <img src="/spot.png" alt="Spot!" className="w-48 h-auto object-contain" onError={(e) => { e.currentTarget.src = 'https://img.icons8.com/color/512/coffee-to-go.png' }} />
-               <span className="text-[#D6006E] font-black italic mt-2 tracking-tighter text-xl uppercase">Entrar</span>
-            </div>
-          </button>
-        </div>
-      </div>
-    );
-  }
+    try {
+      await saveLogToCloud(newLog);
+      setManualEdit((prev: any) => ({ ...prev, isOpen: false }));
+      setModalConfig({ isOpen: true, type: 'success', title: 'Registro Actualizado', message: `El registro del día ${formatDateDisplay(manualEdit.date)} fue guardado correctamente.`, inputValue: '', onConfirm: null });
+    } catch (error) { console.error(error); }
+  };
+
   // ==========================================
   // LÓGICA DE OPERACIÓN GENERAL
   // ==========================================
@@ -671,57 +590,7 @@ if (activeSector === 'spot') {
       </div>
     );
   }
-// ==========================================
-  // BLOQUE DE EMERGENCIA - SECTOR SPOT!
-  // ==========================================
-  if (activeSector === 'spot') {
-    const TAREAS_LOCALES = [
-      { id: 'S1', title: 'Hornear medialunas', shift: 'MAÑANA', detail: '06:00 hs' },
-      { id: 'S2', title: 'Sándwich de miga / Pebetes', shift: 'MAÑANA', detail: 'Turno mañana' },
-      { id: 'S3', title: 'Hornear empanadas', shift: 'AMBOS', detail: '10:00 - 12:30 / 18:00 hs' },
-      { id: 'L1', title: 'Limpieza Horno', shift: 'MAÑANA', detail: 'Todos los días' }
-    ];
 
-    if (!spotOperator) {
-      return (
-        <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 text-white">
-          <div className="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md text-center">
-            <h2 className="text-2xl font-black text-slate-800 mb-8 uppercase italic">¿Quién inicia el turno?</h2>
-            <div className="flex flex-col gap-4">
-              {['CINTIA', 'TATIANA', 'FIORELLA'].map(name => (
-                <button key={name} onClick={() => setSpotOperator(name)} className="py-5 bg-slate-100 text-slate-800 font-black rounded-2xl text-xl hover:bg-[#D6006E] hover:text-white transition-all">{name}</button>
-              ))}
-            </div>
-            <button onClick={() => setActiveSector(null)} className="mt-8 text-slate-300 font-bold text-xs underline">VOLVER</button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
-        <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-xl overflow-hidden">
-          <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white font-black italic">
-            <span>SPOT! - {spotOperator}</span>
-            <button onClick={() => setSpotOperator(null)} className="text-[10px] bg-white/20 px-3 py-1 rounded-full uppercase">Cambiar</button>
-          </div>
-          <div className="p-6 space-y-4">
-            {TAREAS_LOCALES.map(t => (
-              <div key={t.id} className="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100">
-                <p className="font-black text-slate-800 text-lg">{t.title}</p>
-                <p className="text-xs text-[#D6006E] font-bold mb-4 italic">{t.detail}</p>
-                <div className="flex gap-2">
-                  <button onClick={() => updateSpotTask(t.id, 'OK')} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-md">Realizado</button>
-                  <button onClick={() => updateSpotTask(t.id, 'NO')} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-black text-xs shadow-md">No hice</button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button onClick={() => setActiveSector(null)} className="w-full py-5 text-slate-300 font-bold text-xs uppercase tracking-widest">Salir</button>
-        </div>
-      </div>
-    );
-  }
  // ==========================================
   // PANTALLA DE SELECCIÓN DE SECTOR
   // ==========================================
@@ -735,56 +604,79 @@ if (activeSector === 'spot') {
             <img src={PlayaIcon} alt="Playa" className="w-full h-auto object-contain" />
           </button>
           
-         {/* BOTÓN SECTOR SPOT! */}
-         <button 
-            onClick={() => setActiveSector('spot')} 
-            className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all group border-4 border-transparent hover:border-[#D6006E]"
-          >
-            <div className="flex flex-col items-center">
-               <img 
-                 src="/spot.png" 
-                 alt="Spot!" 
-                 className="w-48 h-auto object-contain group-hover:rotate-3 transition-transform" 
-                 onError={(e) => { e.currentTarget.src = 'https://img.icons8.com/color/512/coffee-to-go.png' }}
-               />
-               <span className="text-[#D6006E] font-black italic mt-2 tracking-tighter text-xl">¡ENTRAR!</span>
-            </div>
+          <button onClick={() => setActiveSector('spot')} className="bg-white w-72 h-72 rounded-[40px] flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:scale-105 hover:bg-slate-50 transition-all p-12">
+            <img src={SpotIcon} alt="Spot!" className="w-full h-auto object-contain" />
           </button>
           
         </div>
       </div>
     );
   }
-// ==========================================
-  // TEST FINAL DE RENDERIZADO
+  // ========// ==========================================
+  // 3. PANTALLA DEL SPOT! (CHECKLIST)
   // ==========================================
-  
-  if (activeSector === 'spot' || activeSector === 'SPOT') {
-    return (
-      <div className="min-h-screen bg-[#D6006E] flex flex-col items-center justify-center p-6 text-white font-sans">
-        <div className="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md text-center">
-          <div className="w-20 h-20 bg-[#D6006E] rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
-            ☕
-          </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-2 uppercase italic">¡SPOT CONECTADO!</h2>
-          <p className="text-slate-400 font-bold mb-8 uppercase tracking-widest text-xs">Si ves esto, el puente funciona</p>
-          
-          <div className="flex flex-col gap-3">
-            <button onClick={() => setSpotOperator('CINTIA')} className="py-4 bg-slate-100 text-slate-800 font-black rounded-2xl text-xl hover:bg-[#D6006E] hover:text-white transition-all">CINTIA</button>
-            <button onClick={() => setSpotOperator('TATIANA')} className="py-4 bg-slate-100 text-slate-800 font-black rounded-2xl text-xl hover:bg-[#D6006E] hover:text-white transition-all">TATIANA</button>
-            <button onClick={() => setSpotOperator('FIORELLA')} className="py-4 bg-slate-100 text-slate-800 font-black rounded-2xl text-xl hover:bg-[#D6006E] hover:text-white transition-all">FIORELLA</button>
-          </div>
+  if (activeSector === 'spot') {
+    const displayedTasks = SPOT_TASKS.filter(task => 
+      task.shift === 'INGRESO' || task.shift === 'AMBOS' || task.shift === spotTab.toUpperCase()
+    );
 
-          <button 
-            onClick={() => setActiveSector(null)} 
-            className="mt-10 text-slate-300 font-bold text-xs underline hover:text-[#D6006E]"
-          >
-            VOLVER AL MENÚ PRINCIPAL
-          </button>
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-2 md:p-6 animate-in fade-in duration-300">
+        <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden">
+           
+           {/* CABECERA */}
+           <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
+              <h2 className="text-2xl font-black flex items-center gap-4">
+                CHECKLIST SPOT!
+              </h2>
+              <button onClick={() => setActiveSector(null)} className="p-2 bg-white/20 rounded-full">
+                <X className="w-6 h-6" />
+              </button>
+           </div>
+           
+           {/* SELECTOR DE TURNO */}
+           <div className="flex border-b border-slate-200">
+             <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-bold ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>
+                ☀️ Mañana
+             </button>
+             <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-bold ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>
+                🌙 Tarde
+             </button>
+           </div>
+
+           {/* LISTA DE TAREAS */}
+           <div className="p-4 space-y-4 bg-slate-50 min-h-[400px]">
+              {displayedTasks.map(task => {
+                const status = spotChecklist[task.id] || null;
+                let cardStyle = "bg-white border-slate-200";
+                if (status === 'REALIZADO') cardStyle = "bg-green-50 border-green-400";
+                if (status === 'NO REALIZADO') cardStyle = "bg-red-50 border-red-400";
+                if (status === 'NO FUE NECESARIO') cardStyle = "bg-slate-100 border-slate-400";
+
+                return (
+                  <div key={task.id} className={`flex flex-col gap-4 p-4 rounded-2xl border-2 transition-all ${cardStyle}`}>
+                    <p className="font-bold text-slate-800">{task.title}</p>
+                    <div className="flex gap-2">
+                      <button onClick={() => updateSpotTask(task.id, 'REALIZADO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'REALIZADO' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        REALIZADO
+                      </button>
+                      <button onClick={() => updateSpotTask(task.id, 'NO REALIZADO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'NO REALIZADO' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        NO REALIZADO
+                      </button>
+                      <button onClick={() => updateSpotTask(task.id, 'NO FUE NECESARIO')} className={`flex-1 py-2 rounded-lg text-[10px] font-bold ${status === 'NO FUE NECESARIO' ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        NO NECESARIO
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+           </div>
         </div>
       </div>
     );
   }
+  const orderCotization = calcularCostoPedido();
+
   // ==========================================
   // UI - RENDERIZADO PRINCIPAL
   // ==========================================
