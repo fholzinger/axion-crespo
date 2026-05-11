@@ -1,17 +1,4 @@
-// ==========================================
-// BASE DE DATOS DEL SPOT!
-// ==========================================
-const SPOT_TASKS = [
-  { id: '1', title: 'TOMA DE ASISTENCIA', category: 'TAREAS', shift: 'INGRESO' },
-  { id: '2', title: 'RECEPCIÓN DE PEDIDOS DEL DIA', category: 'PEDIDOS', shift: 'AMBOS' },
-  { id: '3', title: 'ARMADO Y CONTROL DE PEDIDOS AL PROVEEDOR', category: 'PEDIDOS', shift: 'MAÑANA' },
-  { id: '4', title: 'COMPRAS AL SUPERMERCADO - FIAMBRES Y VERDURAS', category: 'COMPRAS', shift: 'MAÑANA' },
-  { id: '5', title: 'PLANILLA DE DEUDORES Y SISTEMA', category: 'TAREAS', shift: 'AMBOS' },
-  { id: '6', title: 'VENCIMIENTOS DE LA SEMANA SEGÚN FEPS', category: 'REVISIONES', shift: 'MAÑANA' },
-  { id: '7', title: 'ORDEN Y REPOSICIÓN DE CÁMARAS Y MOSTRADORES', category: 'TAREAS', shift: 'AMBOS' },
-  { id: '8', title: 'ROTULAR PRODUCTOS DE HELADERA', category: 'LIMPIEZA', shift: 'AMBOS' },
-  { id: '9', title: 'DESCARGAR LA CAFETERA', category: 'LIMPIEZA', shift: 'TARDE' }
-];
+// 1. IMPORTACIONES (Siempre primero)
 import React, { useState, useMemo, useEffect } from 'react';
 import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, CalendarDays, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
@@ -21,7 +8,54 @@ import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs 
 import PlayaIcon from './assets/playa.png'; // Ruta a tu imagen de surtidor fucsia
 import SpotIcon from './assets/spot.png';   // Ruta a tu imagen de texto manuscrito "Spot!"
 import AxionLogo from './assets/logo.png'; 
-// 
+//
+// ==========================================
+// NUEVA BASE DE DATOS DEL SPOT (CRONOGRAMA ACTUALIZADO)
+// ==========================================
+const SPOT_TASKS = [
+  // Tareas Diarias y Elaboración
+  { id: 's1', title: 'SACAR MEDIALUNAS (21HS / 22HS SAB)', category: 'TAREAS', shift: 'TARDE' },
+  { id: 's2', title: 'HORNEAR MEDIALUNAS (06HS / 07HS DOM)', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's3', title: 'ELABORACIÓN DE CARLITOS', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's4', title: 'ELABORACIÓN DE PEBETES', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's5', title: 'ELABORACIÓN DE SANDWICH DE MIGA', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's6', title: 'ELABORACIÓN DE DONAS (DÍA POR MEDIO)', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's7', title: 'ELABORACIÓN DE TRIPLES', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's8', title: 'HORNEAR EMPANADAS (10:00 - 12:30 - 18:00)', category: 'TAREAS', shift: 'AMBOS' },
+  { id: 's9', title: 'ELABORACIÓN EMPANADAS J&Q', category: 'TAREAS', shift: 'MAÑANA' },
+  { id: 's10', title: 'CORTAR JAMÓN Y QUESOS (15:30HS)', category: 'TAREAS', shift: 'TARDE' },
+
+  // Compras (Según Cronograma)
+  { id: 'c1', title: 'COMPRA: VERDULERÍA (JUEVES)', category: 'COMPRAS', shift: 'MAÑANA' },
+  { id: 'c2', title: 'COMPRA: PRODUCTOS LIMPIEZA (MIÉRCOLES)', category: 'COMPRAS', shift: 'MAÑANA' },
+  { id: 'c3', title: 'COMPRA: SUPERMERCADO (VIERNES)', category: 'COMPRAS', shift: 'MAÑANA' },
+  { id: 'c4', title: 'COMPRA: CARNICERÍA (VIERNES)', category: 'COMPRAS', shift: 'MAÑANA' },
+
+  // Pedidos a Realizar
+  { id: 'p1', title: 'PEDIDO POTIGIAN (VIERNES ANTES 13HS)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p2', title: 'PEDIDO MASSALIN (MARTES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p3', title: 'PEDIDO COCA COLA (MIÉRCOLES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p4', title: 'PEDIDO HORIZONTE (MARTES/JUEVES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p5', title: 'PEDIDO MARTIN LÓPEZ (MARTES/VIERNES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p6', title: 'PEDIDO LA FAMILIA (LUNES/JUEVES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p7', title: 'PEDIDO DIMARKY / BLUMENTHAL (MENSUAL)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p8', title: 'REVISIÓN DE STOCK (JUEVES/VIERNES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p9', title: 'PEDIDO ANTARTIDA (QUINCENAL)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p10', title: 'PEDIDO AXION LOG (BIMESTRAL)', category: 'PEDIDOS', shift: 'MAÑANA' },
+  { id: 'p11', title: 'PEDIDO DON LUCAS (LUNES)', category: 'PEDIDOS', shift: 'MAÑANA' },
+
+  // Limpieza y Revisiones
+  { id: 'l1', title: 'LIMPIEZA HORNO CON VINAGRE', category: 'LIMPIEZA', shift: 'MAÑANA' },
+  { id: 'l2', title: 'LIMPIEZA CARAMELERA (MIÉRCOLES)', category: 'LIMPIEZA', shift: 'MAÑANA' },
+  { id: 'l3', title: 'LIMPIEZA MUEBLES (JUEVES)', category: 'LIMPIEZA', shift: 'MAÑANA' },
+  { id: 'l4', title: 'LIMPIEZA TOTAL HELADERAS/FREEZER (MENSUAL)', category: 'LIMPIEZA', shift: 'MAÑANA' },
+  { id: 'l5', title: 'LIMPIEZA DE PISO', category: 'LIMPIEZA', shift: 'AMBOS' },
+  { id: 'l6', title: 'LIMPIEZA VIDRIOS (MIER A VIER)', category: 'LIMPIEZA', shift: 'MAÑANA' },
+  { id: 'l7', title: 'LIMPIEZA HORNO CON PASTILLA (CADA 2 DÍAS)', category: 'LIMPIEZA', shift: 'TARDE' },
+  { id: 'l8', title: 'REVISIÓN VENCIMIENTOS (DOMINGOS)', category: 'REVISIONES', shift: 'MAÑANA' },
+  { id: 'l9', title: 'REVISIÓN PRECIOS IMPRESOS', category: 'REVISIONES', shift: 'MAÑANA' }
+];
+ 
 
 // ==========================================
 // INICIALIZACIÓN DE BASE DE DATOS EN LA NUBE
