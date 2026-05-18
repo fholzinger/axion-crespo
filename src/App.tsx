@@ -2,13 +2,13 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3, MessageSquare, Camera, Eye, Printer, Check, BarChart3 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs, addDoc, query, orderBy, updateDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 
 // IMPORTACIÓN DE ICONOS PERSONALIZADOS
 import PlayaIcon from './assets/playa.png'; 
-import SpotIcon from './assets/spot.png';   
+import SpotIcon from './assets/spot.png';
 import AxionLogo from './assets/logo.png'; 
 
 // ==========================================
@@ -102,6 +102,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = "mi-estacion-crespo";
 
+signInAnonymously(auth).catch(() => console.log("Firebase Conectado"));
+
 const MONTH_NAMES: any = { '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril', '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto', '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre' };
 
 const getYesterdayISOString = () => {
@@ -110,7 +112,6 @@ const getYesterdayISOString = () => {
   return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 };
 
-// --- FÓRMULA TRIGONOMÉTRICA BLINDADA ANTI-NAN ---
 const tankLitrosTrig = (mm: number, config: any): number => {
   if (!mm || mm <= 0) return 0;
   if (mm >= config.diameterMm) return config.maxLiters;
@@ -200,7 +201,7 @@ const RRHHView = () => {
 };
 
 // ==========================================
-// MÓDULO INDEPENDIENTE DE GERENCIA (VINCULADO AL MONITOR DE PLAYA)
+// MÓDULO INDEPENDIENTE DE GERENCIA
 // ==========================================
 function GerenciaPage() {
   const navigate = useNavigate();
@@ -212,9 +213,9 @@ function GerenciaPage() {
   
   const [tipoCamion, setTipoCamion] = useState<'estandar' | 'chico'>('estandar');
   const [fuelPrices, setFuelPrices] = useState<any>({ super: 1000, quantium_nafta: 1200, x10: 1050, quantium_diesel: 1250 });
-  const [camionState, setCamionState] = useState<any[]>(new Array(7).fill({ fuel: 'vacio', tankId: '' }));
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
+  
+  // camionState almacena qué tanque (id) está asignado a cada cisterna [Cisterna 0, Cisterna 1, ...]
+  const [camionState, setCamionState] = useState<string[]>(new Array(7).fill('vacio'));
 
   const [manualEdit, setManualEdit] = useState<any>({
     isOpen: false, id: null, date: getYesterdayISOString(), responsable: 'Gerencia (Ajuste)',
@@ -233,31 +234,53 @@ function GerenciaPage() {
     });
   }, []);
 
+  // Setea el tamaño del camión y resetea las cisternas
+  const handleTipoCamionChange = (tipo: 'estandar' | 'chico') => {
+    setTipoCamion(tipo);
+    setCamionState(new Array(tipo === 'estandar' ? 7 : 6).fill('vacio'));
+  };
+
+  // Cálculo de litros totales asignados agrupados por Tanque ID
+  const litrosAsignadosPorTanque = useMemo(() => {
+    const totales: Record<string, number> = {};
+    camionState.forEach((tankId, idx) => {
+      if (tankId && tankId !== 'vacio') {
+        const capacidadCisterna = CAMIONES_CONFIG[tipoCamion][idx]?.max || 0;
+        totales[tankId] = (totales[tankId] || 0) + capacidadCisterna;
+      }
+    });
+    return totales;
+  }, [camionState, tipoCamion]);
+
+  // Costo total del flete sumando los precios individuales de cada cisterna cargada
   const totalCostoPedido = useMemo(() => {
-    return camionState.reduce((acc, cis, idx) => {
-      if (!cis || cis.fuel === 'vacio') return acc;
+    return camionState.reduce((acc, tankId, idx) => {
+      if (!tankId || tankId === 'vacio') return acc;
+      const configTanque = TANKS_CONFIG.find(t => t.id === tankId);
+      if (!configTanque) return acc;
       const capacidadCisterna = CAMIONES_CONFIG[tipoCamion][idx]?.max || 0;
-      return acc + (capacidadCisterna * (fuelPrices[cis.fuel] || 0));
+      return acc + (capacidadCisterna * (fuelPrices[configTanque.fuel] || 0));
     }, 0);
   }, [camionState, tipoCamion, fuelPrices]);
 
+  // Validación de espacio libre: compara la suma de cisternas contra el espacio disponible
   const validacionEspacioLibre = useMemo(() => {
-    const asignaciones: any = {}; const alertas: any = [];
+    const alertas: any = [];
     if (!tankReadings) return [];
-    camionState.forEach((cis, idx) => {
-      if (cis && cis.fuel !== 'vacio' && cis.tankId) {
-        const cap = CAMIONES_CONFIG[tipoCamion][idx]?.max || 0;
-        asignaciones[cis.tankId] = (asignaciones[cis.tankId] || 0) + cap;
+
+    Object.keys(litrosAsignadosPorTanque).forEach(tId => {
+      const config = TANKS_CONFIG.find(t => t.id === tId);
+      if (!config) return;
+      const currentLiters = parseFloat(tankReadings?.[tId]?.liters) || 0;
+      const libre = config.maxLiters - currentLiters;
+      const asignado = litrosAsignadosPorTanque[tId] || 0;
+
+      if (asignado > libre) {
+        alertas.push({ name: config.name, sobra: asignado - libre });
       }
     });
-    Object.keys(asignaciones).forEach(tId => {
-      const config = TANKS_CONFIG.find(t => t.id === tId);
-      const currentLiters = parseFloat(tankReadings?.[tId]?.liters) || 0;
-      const libre = config ? config.maxLiters - currentLiters : 0;
-      if (asignaciones[tId] > libre) alertas.push({ name: config?.name, sobra: asignaciones[tId] - libre });
-    });
     return alertas;
-  }, [camionState, tipoCamion, tankReadings]);
+  }, [litrosAsignadosPorTanque, tankReadings]);
 
   const archivarMensaje = async (id: string) => {
     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'solicitudes_rrhh', id), { archivado: true });
@@ -291,7 +314,7 @@ function GerenciaPage() {
       const priorLogs = historialOficial.filter(log => log.date < selectedDate).sort((a,b) => b.date.localeCompare(a.date));
       const lastLog = priorLogs.length > 0 ? priorLogs[0] : null;
       const freshTanks: any = {};
-      TANKS_CONFIG.forEach(t => { freshTanks[t.id] =freshTanks[t.id] = { inicio: lastLog ? lastLog.tanks[t.id].fin : 0, desc: 0, fin: 0, lv: 0 }; });
+      TANKS_CONFIG.forEach(t => { freshTanks[t.id] = { inicio: lastLog ? lastLog.tanks[t.id].fin : 0, desc: 0, fin: 0, lv: 0 }; });
       setManualEdit({ isOpen: true, id: null, date: selectedDate, responsable: 'Gerencia (Carga Manual)', tanks: freshTanks });
     }
   };
@@ -312,27 +335,22 @@ function GerenciaPage() {
     });
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registros_oficiales_v4', newLog.id.toString()), newLog);
+      
+      // Sincronización automática e inyección interactiva al Monitor Online de Playa al guardar cambios manuales
+      if (tankReadings) {
+        const updatedMonitor = { ...tankReadings };
+        TANKS_CONFIG.forEach(tank => {
+          if (updatedMonitor[tank.id]) {
+            updatedMonitor[tank.id].liters = newLog.tanks[tank.id].fin;
+            updatedMonitor[tank.id].mm = '';
+          }
+        });
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'estado_actual', 'varillas_oficiales_v4'), { readings: updatedMonitor });
+      }
+
       setManualEdit((prev: any) => ({ ...prev, isOpen: false }));
-      alert("Registro Guardado ✅");
+      alert("Registro Guardado e Inyectado al Monitor Online ✅");
     } catch (error) { console.error(error); }
-  };
-
-  const handleUpdateFieldGerencia = async (tId: string, field: string) => {
-    const updated = { ...tankReadings };
-    const val = parseFloat(editValue) || 0;
-    const config = TANKS_CONFIG.find(t => t.id === tId);
-    if (!config) return;
-
-    if (field === 'mm') {
-      updated[tId].mm = val;
-      updated[tId].liters = tankLitrosTrig(val, config) + (parseFloat(updated[tId].desc) || 0);
-    } else if (field === 'descarga') {
-      updated[tId].desc = val;
-      updated[tId].liters = tankLitrosTrig(parseFloat(updated[tId].mm) || 0, config) + val;
-    }
-    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'estado_actual', 'varillas_oficiales_v4'), { readings: updated });
-    setEditingId(null);
-    setEditValue("");
   };
 
   return (
@@ -413,35 +431,81 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 2. PEDIDO DE COMBUSTIBLE HORIZONTAL */}
+        {/* 2. PEDIDO DE COMBUSTIBLE HORIZONTAL (REDISEÑADO COMPARTIMENTADO MULTI-CISTERNA) */}
         {activeMenu === 'pedido' && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 text-center animate-in fade-in">
             <div className="xl:col-span-2 space-y-4 text-left">
-              <div className="bg-white p-5 rounded-3xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t-4 border-fuchsia-600">
-                 <div><h3 className="font-black uppercase italic text-slate-800 text-sm flex items-center gap-2"><Truck className="text-[#E20074]"/> Planificador Horizontal</h3></div>
-                 <div className="flex bg-slate-100 p-1 rounded-xl"><button onClick={() => { setTipoCamion('estandar'); setCamionState(new Array(7).fill({fuel:'vacio', tankId:''})); }} className={`px-4 py-1.5 rounded-lg text-[9px] font-black ${tipoCamion === 'estandar' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}>ESTÁNDAR (7)</button><button onClick={() => { setTipoCamion('chico'); setCamionState(new Array(6).fill({fuel:'vacio', tankId:''})); }} className={`px-4 py-1.5 rounded-lg text-[9px] font-black ${tipoCamion === 'chico' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}>CHICO (6)</button></div>
+              <div className="bg-white p-5 rounded-3xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t-4 border-[#E20074]">
+                 <div><h3 className="font-black uppercase italic text-slate-800 text-sm flex items-center gap-2"><Truck className="text-[#E20074]"/> Distribución de Cisternas del Camión</h3></div>
+                 <div className="flex bg-slate-100 p-1 rounded-xl">
+                   <button onClick={() => handleTipoCamionChange('estandar')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black ${tipoCamion === 'estandar' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}>ESTÁNDAR (7)</button>
+                   <button onClick={() => handleTipoCamionChange('chico')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black ${tipoCamion === 'chico' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}>CHICO (6)</button>
+                 </div>
               </div>
 
+              {/* Grilla que itera sobre las cisternas del camión permitiendo asignación múltiple */}
               <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border space-y-3">
-                {tankReadings && TANKS_CONFIG.map(tank => {
-                  const currentStock = parseFloat(tankReadings?.[tank.id]?.liters) || 0;
-                  const libre = tank.maxLiters - currentStock;
-                  
+                {CAMIONES_CONFIG[tipoCamion].map((cisterna, idx) => {
+                  const tanqueAsignadoId = camionState[idx] || 'vacio';
                   return (
-                    <div key={tank.id} className="p-4 bg-slate-50 border rounded-2xl flex flex-col lg:flex-row items-start lg:items-center gap-4 justify-between">
-                      <div className="w-40"><p className="font-black text-xs text-slate-700 flex items-center gap-2"><span className={`w-2.5 h-2.5 rounded-full ${tank.color}`}></span>{tank.name}</p><p className="text-[10px] text-slate-400 font-bold uppercase">Max: {tank.maxLiters.toLocaleString()}L</p></div>
-                      <div className="flex gap-6 text-center"><div className="w-24"><span className="text-[9px] text-slate-400 font-bold uppercase block">Stock Actual</span><span className="text-xs font-black text-slate-700">{Math.round(currentStock).toLocaleString()} L</span></div><div className="w-24"><span className="text-[9px] text-[#E20074] font-bold uppercase block">Puede Recibir</span><span className="text-xs font-black text-[#E20074]">{Math.max(0, Math.round(libre)).toLocaleString()} L</span></div></div>
+                    <div key={cisterna.id} className="p-4 bg-slate-50 border rounded-2xl flex flex-col lg:flex-row items-start lg:items-center gap-4 justify-between">
+                      <div className="w-40">
+                        <p className="font-black text-xs text-slate-700 flex items-center gap-2">
+                          <Truck className="w-3.5 h-3.5 text-slate-400" /> Compartimento {idx + 1}
+                        </p>
+                        <p className="text-[10px] text-indigo-600 font-bold uppercase">Capacidad: {cisterna.max.toLocaleString()} L</p>
+                      </div>
                       <div className="flex-1 flex gap-2 items-center w-full lg:w-auto mt-2 lg:mt-0">
-                        <select value={camionState.findIndex(c => c.tankId === tank.id)} onChange={(e) => {
-                          const idxCisterna = parseInt(e.target.value); const newState = [...camionState];
-                          newState.forEach((c, i) => { if (c.tankId === tank.id) newState[i] = { fuel: 'vacio', tankId: '' }; });
-                          if (idxCisterna >= 0) newState[idxCisterna] = { fuel: tank.fuel, tankId: tank.id };
-                          setCamionState(newState);
-                        }} className="w-full lg:w-48 p-2 text-[10px] font-bold uppercase border bg-white rounded-xl outline-none text-slate-700"><option value="-1">ASIGNAR CISTERNA</option>{CAMIONES_CONFIG[tipoCamion].map((c, i) => (<option key={i} value={i}>Cisterna {i+1} ({c.max.toLocaleString()} L)</option>))}</select>
+                        <select 
+                          value={tanqueAsignadoId} 
+                          onChange={(e) => {
+                            const newState = [...camionState];
+                            newState[idx] = e.target.value;
+                            setCamionState(newState);
+                          }} 
+                          className="w-full lg:w-64 p-2 text-[10px] font-bold uppercase border bg-white rounded-xl outline-none text-slate-700"
+                        >
+                          <option value="vacio">-- CISTERNA VACÍA --</option>
+                          {TANKS_CONFIG.map(t => {
+                            const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings[t.id].liters) : 0;
+                            const libre = Math.max(0, Math.round(t.maxLiters - currentStock));
+                            return (
+                              <option key={t.id} value={t.id}>
+                                {t.name} (Libre: {libre.toLocaleString()} L)
+                              </option>
+                            );
+                          })}
+                        </select>
                       </div>
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Monitor Resumen del estado de los Tanques según lo asignado arriba */}
+              <div className="bg-white p-5 rounded-3xl shadow-sm border space-y-2">
+                <h4 className="text-xs font-black uppercase text-slate-400 italic mb-2">Resumen de Carga Acumulada por Tanque</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {TANKS_CONFIG.map(t => {
+                    const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings[t.id].liters) : 0;
+                    const libre = Math.max(0, t.maxLiters - currentStock);
+                    const asignado = litrosAsignadosPorTanque[t.id] || 0;
+                    const supera = asignado > libre;
+                    return (
+                      <div key={t.id} className={`p-2 border rounded-xl flex justify-between items-center ${supera ? 'bg-red-50 border-red-200' : 'bg-slate-50'}`}>
+                        <div>
+                          <p className="font-bold text-slate-700">{t.name}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">Asignado: {asignado.toLocaleString()} L</p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`font-black ${supera ? 'text-red-600' : 'text-emerald-600'}`}>
+                            {supera ? `Exceso: +${Math.round(asignado - libre).toLocaleString()} L` : `Disponible: ${Math.round(libre - asignado).toLocaleString()} L`}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -454,15 +518,37 @@ function GerenciaPage() {
                   ))}
                 </div>
               </div>
-              <div className="bg-slate-900 p-6 rounded-[2.5rem] text-white text-left shadow-xl sticky top-4">
+              
+              {/* ALARMA DE EXCESO COMPACTA DINÁMICA */}
+              <div className={`p-6 rounded-[2.5rem] text-white text-left shadow-xl sticky top-4 transition-all duration-300 ${validacionEspacioLibre.length > 0 ? 'bg-rose-950 border-4 border-red-500 shadow-red-900/20' : 'bg-slate-900'}`}>
                 <h3 className="font-black uppercase italic mb-4 text-[#E20074] text-xs">Cálculo del Pedido</h3>
-                {validacionEspacioLibre.length > 0 ? validacionEspacioLibre.map((al, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-red-500/20 border border-red-500 mb-2 animate-pulse"><p className="text-[9px] font-black uppercase text-red-400">EXCESO: {al.name}</p><p className="text-sm font-black">+{Math.round(al.sobra).toLocaleString()} L</p></div>
-                )) : <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 font-black text-[10px] uppercase italic tracking-wider text-center">Pedido Seguro</div>}
+                {validacionEspacioLibre.length > 0 ? (
+                  <div className="space-y-2">
+                    {validacionEspacioLibre.map((al, i) => (
+                      <div key={i} className="p-3 rounded-xl bg-red-500/20 border border-red-500 animate-pulse flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                        <div>
+                          <p className="text-[9px] font-black uppercase text-red-400">REBALSARÍA: {al.name}</p>
+                          <p className="text-xs font-black">Supera por +{Math.round(al.sobra).toLocaleString()} L</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 font-black text-[10px] uppercase italic tracking-wider text-center flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Capacidad de Recepción Segura
+                  </div>
+                )}
                 <div className="mt-6 pt-6 border-t border-white/10 text-center">
                    <p className="text-[9px] font-black text-[#E20074] uppercase italic tracking-widest">Total Flete</p>
                    <p className="text-3xl font-black italic tracking-tighter text-emerald-400 my-3">$ {totalCostoPedido.toLocaleString('es-AR')}</p>
-                   <button onClick={() => window.print()} className="w-full bg-[#E20074] hover:bg-pink-700 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 shadow-lg transition-all italic"><Printer className="w-4 h-4"/> Nota de Pedido</button>
+                   <button 
+                     disabled={validacionEspacioLibre.length > 0} 
+                     onClick={() => window.print()} 
+                     className={`w-full py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 shadow-lg transition-all italic text-white ${validacionEspacioLibre.length > 0 ? 'bg-slate-700 opacity-40 cursor-not-allowed shadow-none' : 'bg-[#E20074] hover:bg-pink-700'}`}
+                   >
+                     <Printer className="w-4 h-4"/> Nota de Pedido
+                   </button>
                 </div>
               </div>
             </div>
@@ -482,8 +568,8 @@ function GerenciaPage() {
 
             <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 border-b"><tr><th className="p-3 font-bold">Fecha</th><th className="p-3">Responsable Oficial</th>{TANKS_CONFIG.map(t=>(<th key={t.id} className="p-3 font-bold text-center">{t.name} (L)</th>))}<th className="p-3 text-right font-bold">Estado</th></tr></thead>
-                <tbody className="font-bold italic">{historialOficial.map(dia => (
+                <thead className="bg-slate-50 border-b"><tr><th className="p-3">Fecha</th><th className="p-3">Responsable Oficial</th>{TANKS_CONFIG.map(t=>(<th key={t.id} className="p-3 font-bold text-center">{t.name} (L)</th>))}<th className="p-3 text-right font-bold">Estado</th></tr></thead>
+                <tbody>{historialOficial.map(dia => (
                   <tr key={dia.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="p-3 text-slate-800 font-black">{dia.date}</td>
                     <td className="p-3 text-slate-600">{dia.responsable}</td>
@@ -498,7 +584,6 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 4. BUZÓN DE RRHH */}
         {activeMenu === 'rrhh' && (
           <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="bg-white p-5 rounded-3xl border shadow-sm flex justify-between items-center border-t-4 border-[#E20074]">
@@ -703,7 +788,7 @@ function OperacionesEstacion() {
             <h2 className="text-xl font-black mb-4 flex items-center gap-2 text-slate-800"><Ruler /> Medición de Varilla Final (Playa)</h2>
             <div className="space-y-4 mb-8">
               {TANKS_CONFIG.map((tank) => {
-                const descVal = parseFloat(tankReadings[tank.id]?.desc) || 0;
+                const descVal = parseFloat(tankReadings?.[tank.id]?.desc) || 0;
                 return (
                   <div key={tank.id} className="p-4 bg-slate-50 rounded-2xl border flex flex-col sm:flex-row items-center gap-4">
                     <div className="w-full sm:w-1/4">
@@ -717,12 +802,12 @@ function OperacionesEstacion() {
                       </div>
                       <div className="flex-1">
                         <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Varilla (mm)</label>
-                        <input type="number" value={tankReadings[tank.id]?.mm || ''} onChange={(e) => handleTankChange(tank.id, 'mm', e.target.value)} className="w-full px-3 py-2 border rounded-lg font-black text-slate-800 outline-none" placeholder="0"/>
+                        <input type="number" value={tankReadings?.[tank.id]?.mm || ''} onChange={(e) => handleTankChange(tank.id, 'mm', e.target.value)} className="w-full px-3 py-2 border rounded-lg font-black text-slate-800 outline-none" placeholder="0"/>
                       </div>
                     </div>
                     <div className="w-full sm:w-1/3">
                       <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Litros</label>
-                      <input type="number" value={tankReadings[tank.id]?.mm === '' ? '' : Math.round(tankReadings[tank.id]?.liters || 0)} onChange={(e) => handleTankChange(tank.id, 'liters', e.target.value)} className="w-full px-3 py-2 bg-indigo-50 border rounded-lg font-black text-indigo-700 outline-none" />
+                      <input type="number" value={tankReadings?.[tank.id]?.mm === '' ? '' : Math.round(tankReadings?.[tank.id]?.liters || 0)} onChange={(e) => handleTankChange(tank.id, 'liters', e.target.value)} className="w-full px-3 py-2 bg-indigo-50 border rounded-lg font-black text-indigo-700 outline-none" />
                     </div>
                   </div>
                 );
@@ -739,7 +824,7 @@ function OperacionesEstacion() {
               {TANKS_CONFIG.map((tank) => (
                 <div key={tank.id} className="p-4 bg-slate-50 rounded-2xl border flex flex-col sm:flex-row items-center gap-4">
                   <div className="w-full sm:w-1/4"><h3 className="font-bold text-slate-700">{tank.name}</h3></div>
-                  <div className="flex-1"><input type="number" value={tankReadings[tank.id]?.desc || ''} onChange={(e) => handleTankChange(tank.id, 'desc', e.target.value)} className="w-full p-2.5 border rounded-lg font-bold outline-none focus:border-amber-500" placeholder="0 L"/></div>
+                  <div className="flex-1"><input type="number" value={tankReadings?.[tank.id]?.desc || ''} onChange={(e) => handleTankChange(tank.id, 'desc', e.target.value)} className="w-full p-2.5 border rounded-lg font-bold outline-none focus:border-amber-500" placeholder="0 L"/></div>
                 </div>
               ))}
             </div>
@@ -752,7 +837,7 @@ function OperacionesEstacion() {
             <h1 className="text-2xl font-bold flex items-center gap-3 mb-6"><Database className="text-emerald-400" /> Nivel Online</h1>
             <div className="flex-1 flex items-end justify-center gap-4 md:gap-8 mt-4">
               {TANKS_CONFIG.map((tank) => {
-                const currentLiters = tankReadings[tank.id]?.liters || 0;
+                const currentLiters = tankReadings?.[tank.id]?.liters || 0;
                 const percentage = Math.min(100, Math.max(0, (currentLiters / tank.maxLiters) * 100));
                 return (
                   <div key={tank.id} className="flex flex-col items-center">
@@ -783,7 +868,7 @@ function OperacionesEstacion() {
                 <tbody>{filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b hover:bg-slate-50">
                     <td className="p-3 font-bold">{formatDateDisplay(log.date)}</td>
-                    {TANKS_CONFIG.map(t => (<td key={t.id} className="p-3 text-center font-bold">{Math.round(log.tanks[t.id]?.fin || 0).toLocaleString('es-AR')} L</td>))}
+                    {TANKS_CONFIG.map(t => (<td key={t.id} className="p-3 text-center font-bold">{Math.round(log.tanks?.[t.id]?.fin || 0).toLocaleString('es-AR')} L</td>))}
                     <td className="p-3 text-slate-600 font-medium">{log.responsable}</td>
                   </tr>
                 ))}</tbody>
