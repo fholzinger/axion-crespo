@@ -104,14 +104,12 @@ const appId = "mi-estacion-crespo";
 
 signInAnonymously(auth).catch(() => console.log("Firebase Conectado"));
 
-// --- CONTROL DE TIEMPO DIARIO ---
 const getYesterdayISOString = () => {
   const today = new Date();
   const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
   return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 };
 
-// --- FÓRMULA TRIGONOMÉTRICA BLINDADA ---
 const tankLitrosTrig = (mm: number, config: any): number => {
   if (!mm || mm <= 0) return 0;
   if (mm >= config.diameterMm) return config.maxLiters;
@@ -121,8 +119,6 @@ const tankLitrosTrig = (mm: number, config: any): number => {
   const area = Math.pow(r, 2) * Math.acos(cosValue) - (r - h) * Math.sqrt(Math.max(0, 2 * r * h - Math.pow(h, 2)));
   return Math.round((area / (Math.PI * Math.pow(r, 2))) * config.maxLiters);
 };
-
-const MONTH_NAMES: any = { '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril', '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto', '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre' };
 
 // ==========================================
 // COMPONENTE BUZÓN RRHH
@@ -268,6 +264,7 @@ function GerenciaPage() {
   const [tipoCamion, setTipoCamion] = useState<'estandar' | 'chico'>('estandar');
   const [fuelPrices, setFuelPrices] = useState<any>({ super: 1000, quantium_nafta: 1200, x10: 1050, quantium_diesel: 1250 });
   
+  // camionState guarda las asignaciones reales por compartimento [C1, C2, C3...]
   const [camionState, setCamionState] = useState<string[]>(new Array(7).fill('vacio'));
 
   const [manualEdit, setManualEdit] = useState<any>({
@@ -306,6 +303,7 @@ function GerenciaPage() {
     } catch(e) { console.error(e); }
   };
 
+  // LÓGICA CORREGIDA: Suma interactiva acumulando múltiples compartimentos asignados al mismo producto
   const litrosAsignadosPorTanque = useMemo(() => {
     const totales: Record<string, number> = {};
     camionState.forEach((tankId, idx) => {
@@ -456,7 +454,7 @@ function GerenciaPage() {
         </div>
       )}
 
-      {/* SIDEBAR CENTRAL EXCLUSIVO MAGENTA */}
+      {/* SIDEBAR EXCLUSIVO MAGENTA Y BLANCO */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col shadow-sm z-20">
         <div className="flex items-center gap-3 mb-8 pb-4 border-b">
           <div className="h-9 w-9 bg-[#E20074] rounded-xl flex items-center justify-center font-black text-white text-xs italic">AX</div>
@@ -500,7 +498,7 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 2. PEDIDO DE COMBUSTIBLE */}
+        {/* 2. PEDIDO DE COMBUSTIBLE MODIFICADO */}
         {activeMenu === 'pedido' && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 text-center animate-in fade-in">
             <div className="xl:col-span-2 space-y-4 text-left">
@@ -512,6 +510,7 @@ function GerenciaPage() {
                  </div>
               </div>
 
+              {/* LÓGICA CORREGIDA: Removido el filtro rígido para que puedas mandar múltiples cisternas juntas al mismo tanque */}
               <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border space-y-3">
                 {CAMIONES_CONFIG[tipoCamion].map((cisterna, idx) => {
                   const tanqueAsignadoId = camionState[idx] || 'vacio';
@@ -537,10 +536,6 @@ function GerenciaPage() {
                           {TANKS_CONFIG.map(t => {
                             const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings[t.id].liters) : 0;
                             const libre = Math.max(0, Math.round(t.maxLiters - currentStock));
-                            
-                            const yaAsignadoEnOtroLado = camionState.some((id, cIdx) => id === t.id && cIdx !== idx);
-                            if (yaAsignadoEnOtroLado) return null;
-
                             return (
                               <option key={t.id} value={t.id}>
                                 {t.name} (Libre: {libre.toLocaleString()} L)
@@ -558,7 +553,7 @@ function GerenciaPage() {
                 <h4 className="text-xs font-black uppercase text-slate-400 italic mb-2">Resumen de Carga Acumulada por Tanque</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {TANKS_CONFIG.map(t => {
-                    const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings[t.id].liters) : 0;
+                    const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings?.[t.id].liters) : 0;
                     const libre = Math.max(0, t.maxLiters - currentStock);
                     const asignado = litrosAsignadosPorTanque[t.id] || 0;
                     const supera = asignado > libre;
@@ -587,6 +582,55 @@ function GerenciaPage() {
                   {Object.keys(fuelPrices).map(f => (
                     <div key={f} className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border"><p className="text-[10px] font-black text-slate-500 uppercase">{f}</p><div className="flex items-center font-black text-sm text-emerald-600">$<input type="number" value={fuelPrices[f]} onChange={(e) => handlePriceChange(f, parseFloat(e.target.value) || 0)} className="w-16 bg-transparent text-center font-black outline-none ml-0.5 text-emerald-600 border-none" /></div></div>
                   ))}
+                </div>
+              </div>
+
+              {/* 🚚 COMPONENTE INYECTADO: EL CAMIÓN DE AXION INTERACTIVO EN CALIENTE */}
+              <div className="bg-white p-5 rounded-3xl border shadow-sm text-left space-y-3">
+                <h4 className="text-xs font-black uppercase text-slate-400 italic flex items-center gap-2"><Truck className="w-4 h-4 text-[#E20074]"/> Acoplado de Flete en Vivo</h4>
+                <div className="w-full bg-slate-100 p-4 rounded-2xl border flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden">
+                  
+                  {/* Tanque Cisterna Dinámico */}
+                  <div className="flex border-4 border-slate-700 rounded-full w-full h-16 bg-slate-300 overflow-hidden relative shadow-inner">
+                    {CAMIONES_CONFIG[tipoCamion].map((cisterna, idx) => {
+                      const tId = camionState[idx];
+                      const configTanque = TANKS_CONFIG.find(t => t.id === tId);
+                      
+                      // Pinta en vivo según el color real del combustible
+                      const colorCisterna = configTanque ? configTanque.color : 'bg-slate-300';
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`h-full border-r-2 border-slate-700/60 flex flex-col items-center justify-center transition-all duration-500 ${colorCisterna}`}
+                          style={{ width: `${100 / CAMIONES_CONFIG[tipoCamion].length}%` }}
+                        >
+                          <span className={`text-[9px] font-black uppercase ${configTanque ? 'text-white drop-shadow-md' : 'text-slate-400'}`}>
+                            C{idx+1}
+                          </span>
+                          {configTanque && (
+                            <span className="text-[7px] font-black text-white drop-shadow block leading-none mt-0.5">
+                              {cisterna.max / 1000}k
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Chasis de Flota AXION */}
+                  <div className="w-full flex justify-between items-center px-1 mt-1">
+                    <div className="flex gap-1.5 ml-6">
+                      <div className="bg-slate-800 rounded-full w-5 h-5 border border-slate-600 flex items-center justify-center"><div className="bg-slate-400 rounded-full w-1.5 h-1.5"></div></div>
+                      <div className="bg-slate-800 rounded-full w-5 h-5 border border-slate-600 flex items-center justify-center"><div className="bg-slate-400 rounded-full w-1.5 h-1.5"></div></div>
+                      <div className="bg-slate-800 rounded-full w-5 h-5 border border-slate-600 flex items-center justify-center"><div className="bg-slate-400 rounded-full w-1.5 h-1.5"></div></div>
+                    </div>
+                    {/* Cabina Axion Energy Blanca */}
+                    <div className="bg-white border-2 border-slate-700 rounded-r-xl rounded-l-sm w-16 h-10 relative flex items-center justify-center shadow-md">
+                      <div className="absolute top-1 right-1 bg-sky-200 border border-slate-600 rounded w-6 h-4"></div>
+                      <div className="bg-slate-800 rounded-full w-5 h-5 absolute -bottom-2 left-1.5 border border-slate-600 flex items-center justify-center"><div className="bg-slate-400 rounded-full w-1.5 h-1.5"></div></div>
+                      <span className="text-[7px] font-black tracking-tighter text-[#E20074] italic mt-4">AXION</span>
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -654,7 +698,7 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 4. SANEADO: BUZÓN DE RRHH ADENTRO DE GERENCIA (YA NO QUEDA EN BLANCO) */}
+        {/* 4. BUZÓN DE RRHH */}
         {activeMenu === 'rrhh' && (
           <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="bg-white p-5 rounded-3xl border shadow-sm flex justify-between items-center border-t-4 border-[#E20074]">
@@ -688,7 +732,7 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 5. RECEPTOR DE GERENCIA: REPORTE DE INCIDENTES OCURRIDOS EN EL TURNO */}
+        {/* 5. REPORTE DE INCIDENTES OCURRIDOS EN EL TURNO */}
         {activeMenu === 'incidentes' && (
           <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="bg-white p-5 rounded-3xl border shadow-sm border-t-4 border-rose-500">
@@ -725,6 +769,8 @@ function GerenciaPage() {
 function OperacionesEstacion() {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // VISTA DE SPOT RESTAURADA DE FORMA ABSOLUTA
   const isSpotView = location.pathname === '/spot';
   
   const [activeTab, setActiveTab] = useState('varillas');
@@ -737,7 +783,7 @@ function OperacionesEstacion() {
   };
 
   const [tankReadings, setTankReadings] = useState<any>(STOCK_INICIAL_AL_DIA_ACTUAL);
-  const [dailyLogs, setDailyLogs] = useState<any[]>(DATOS_HISTORICOS); 
+  const [dailyLogs, setDailyLogs] = useState<any[]>(DATOS_HISTORICOS);
   const [modalConfig, setModalConfig] = useState<any>({ isOpen: false, type: 'info', title: '', message: '', inputValue: '', onConfirm: null });
 
   const closeModal = () => setModalConfig((prev: any) => ({ ...prev, isOpen: false }));
@@ -769,9 +815,6 @@ function OperacionesEstacion() {
   useEffect(() => { if (availableMonths.length > 0 && !availableMonths.includes(selectedMonthStr)) setSelectedMonthStr(availableMonths[0]); }, [availableMonths, selectedMonthStr]);
   const filteredLogs = useMemo(() => { if (!selectedMonthStr) return []; return dailyLogs.filter(log => log.date.startsWith(selectedMonthStr)).sort((a, b) => a.date.localeCompare(b.date)); }, [dailyLogs, selectedMonthStr]);
 
-  const formatMonthDisplay = (yyyyMm: string) => { if (!yyyyMm) return ''; const [year, month] = yyyyMm.split('-'); return `${MONTH_NAMES[month]} ${year}`; };
-  const formatDateDisplay = (isoDate: string) => { if (!isoDate) return ''; const [y, m, d] = isoDate.split('-'); return `${d}/${m}/${y}`; };
-
   const handleTankChange = (tankId: string, field: string, value: string) => {
     setTankReadings((prev: any) => {
       const updated = { ...prev, [tankId]: { ...prev[tankId], [field]: value } };
@@ -800,7 +843,7 @@ function OperacionesEstacion() {
   const iniciarCierreDia = () => {
     if (!TANKS_CONFIG.some(tank => tankReadings[tank.id]?.mm !== '' || tankReadings[tank.id]?.liters > 0)) { alert('Faltan datos de varilla.'); return; }
     const fechaAyerIso = getYesterdayISOString();
-    setModalConfig({ isOpen: true, type: 'prompt', title: 'Firma de Responsable', message: `Este registro corresponderá al cierre de ayer (${formatDateDisplay(fechaAyerIso)}). Ingrese su firma:`, inputValue: '', onConfirm: (responsable: string) => ejecutarCierreDia(responsable, fechaAyerIso) });
+    setModalConfig({ isOpen: true, type: 'prompt', title: 'Firma de Responsable', message: `Este registro corresponderá al cierre de ayer (${fechaAyerIso}). Ingrese su firma:`, inputValue: '', onConfirm: (responsable: string) => ejecutarCierreDia(responsable, fechaAyerIso) });
   };
 
   const ejecutarCierreDia = async (responsable: string, fechaAyerIso: string) => {
@@ -808,39 +851,76 @@ function OperacionesEstacion() {
     const priorLogs = dailyLogs.filter(log => log.date < fechaAyerIso).sort((a,b) => b.date.localeCompare(a.date));
     const lastLog = priorLogs.length > 0 ? priorLogs[0] : null;
     const newLog: any = { id: Date.now(), date: fechaAyerIso, responsable: responsable, tanks: {} };
-    
     TANKS_CONFIG.forEach(tank => {
       const inicio = lastLog ? lastLog.tanks[tank.id].fin : 0; 
       const desc = parseFloat(tankReadings[tank.id]?.desc) || 0; 
       const fin = parseFloat(tankReadings[tank.id]?.liters) || 0; 
       newLog.tanks[tank.id] = { inicio, desc, fin, lv: inicio + desc - fin };
     });
-    
     await saveLogToCloud(newLog);
     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'registros_diarios'), { fecha: new Date().toISOString(), readings: tankReadings });
-    
     const nuevoEstado: any = {};
     TANKS_CONFIG.forEach(t => { nuevoEstado[t.id] = { mm: '', liters: newLog.tanks[t.id].fin, desc: '' }; });
-    await saveCurrentStateToCloud(nuevoEstado); 
-    setModalConfig({ isOpen: true, type: 'success', title: '¡Cierre Exitoso!', message: `Los datos se han guardado con fecha ${formatDateDisplay(fechaAyerIso)} en la nube.`, inputValue: '', onConfirm: () => setActiveTab('registro') });
+    await saveCurrentStateToCloud(nuevoEstado);
+    setModalConfig({ isOpen: true, type: 'success', title: '¡Cierre Exitoso!', message: `Los datos se han guardado con fecha ${fechaAyerIso} en la nube.`, inputValue: '', onConfirm: () => setActiveTab('registro') });
   };
+
+  if (isSpotView) {
+    if (!responsableSpot) {
+      return (
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-[30px] shadow-xl max-w-md w-full text-slate-800">
+            <h2 className="text-xl font-bold text-center mb-6">Operador en Turno (Spot!):</h2>
+            <div className="grid gap-3">
+              {['Cintia', 'Fiorella', 'Tatiana'].map(nombre => (
+                <button key={nombre} onClick={() => setResponsableSpot(nombre)} className="w-full p-4 bg-slate-50 border rounded-xl font-bold text-lg flex items-center justify-between hover:bg-slate-100 text-slate-700">{nombre} <ArrowRight/></button>
+              ))}
+            </div>
+            <button onClick={() => navigate('/')} className="mt-4 text-slate-400 font-bold block mx-auto text-xs uppercase tracking-wider outline-none">Volver al Inicio</button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
+        <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden text-slate-800">
+           <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
+              <div><h2 className="text-2xl font-black ">CHECKLIST SPOT!</h2><p className="text-xs font-bold">OPERADOR: {responsableSpot.toUpperCase()}</p></div>
+              <button onClick={() => { setResponsableSpot(''); navigate('/'); }} className="p-2 bg-white/20 rounded-full"><X/></button>
+           </div>
+           <div className="flex border-b">
+             <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-bold ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ Tareas del Turno</button>
+             <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-bold ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>📅 Buzón RRHH</button>
+           </div>
+           <div className="p-4 bg-slate-50 min-h-[400px]">
+              {spotTab === 'mañana' ? (
+                SPOT_TASKS.map(task => {
+                  const status = spotChecklist[task.id] || null;
+                  return (
+                    <div key={task.id} className={`flex justify-between items-center p-4 rounded-2xl border bg-white mb-2 shadow-sm ${status === 'REALIZADO' ? 'bg-green-50' : ''}`}>
+                      <div>
+                        <span className="text-[8px] font-black bg-slate-100 px-2 py-0.5 rounded mr-2 text-slate-500 uppercase">{task.category}</span>
+                        <span className="font-bold text-xs text-slate-700">{task.title}</span>
+                      </div>
+                      <button 
+                        onClick={() => updateSpotTask(task.id, status === 'REALIZADO' ? 'PENDIENTE' : 'REALIZADO')} 
+                        className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${status === 'REALIZADO' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                      >
+                        {status === 'REALIZADO' ? 'Hecho ✓' : 'Pendiente'}
+                      </button>
+                    </div>
+                  );
+                })
+              ) : <RRHHView />}
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4 md:p-8 font-sans text-slate-800 w-full">
-      {modalConfig.isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 bg-indigo-50 font-bold border-b flex justify-between"><h3>{modalConfig.title}</h3><button onClick={closeModal}><X/></button></div>
-            <div className="p-6">
-              <p className="text-slate-600 mb-4">{modalConfig.message}</p>
-              {modalConfig.type === 'prompt' && <input type="text" autoFocus value={modalConfig.inputValue} onChange={(e) => setModalConfig({...modalConfig, inputValue: e.target.value})} className="w-full px-3 py-2 border rounded-xl" />}
-            </div>
-            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-2"><button onClick={handleModalConfirm} className="px-5 py-1.5 bg-indigo-600 text-white font-bold rounded-lg">Confirmar</button></div>
-          </div>
-        </div>
-      )}
-
-      {/* MENU SUPERIOR DE PLAYA EXPANDIDO CON REPORTE DE INCIDENCIAS */}
       <div className="max-w-7xl w-full mb-6 flex flex-wrap lg:flex-nowrap gap-2 bg-white p-2 rounded-2xl shadow-sm border">
         <button onClick={() => setActiveTab('varillas')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'varillas' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500'}`}><Ruler className="w-4 h-4"/> 1. Varillado</button>
         <button onClick={() => setActiveTab('descarga')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'descarga' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500'}`}><Truck className="w-4 h-4"/> 2. Descarga Camión</button>
@@ -980,6 +1060,7 @@ function Home() {
           </div>
         </div>
       )}
+      {/* CORREGIDO SINTERGIA ESTÉTICA: Un único encabezado limpio sin repeticiones */}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20 py-8 px-10 flex items-center gap-4 shadow-xl">
         <div className="h-14 w-14 bg-white p-2 rounded-2xl shadow-xl flex items-center justify-center font-black italic text-pink-600 text-xs">AXION</div>
         <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">AXION Crespo — A y A Jacob S.R.L.</p></div>
@@ -987,9 +1068,9 @@ function Home() {
       <main className="flex-grow flex items-center justify-center p-6 text-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
           {[ 
-            { id: 'playa', label: 'Playa / Tanques', img: 'playa.png', fallback: '⛽' }, 
-            { id: 'spot', label: 'Spot / Ventas', img: 'spot.png', fallback: '☕' }, 
-            { id: 'gerencia', label: 'Gerencia', img: 'gerencia.png', fallback: '⚙️' } 
+            { id: 'playa', label: 'Playa', img: PlayaIcon, fallback: '⛽' }, 
+            { id: 'spot', label: 'Spot!', img: SpotIcon, fallback: '☕' }, 
+            { id: 'gerencia', label: 'Gerencia', img: AxionLogo, fallback: '⚙️' } 
           ].map(m => (
             <div key={m.id} onClick={() => setTargetModulo(m.id)} className="bg-white p-12 rounded-[3.5rem] shadow-2xl cursor-pointer hover:scale-105 transition-all text-center group border-4 border-transparent hover:border-white/50 shadow-pink-900/10">
               <div className="h-28 w-full mx-auto mb-6 flex items-center justify-center">
@@ -1000,7 +1081,7 @@ function Home() {
           ))}
         </div>
       </main>
-      <footer className="py-6 text-center text-white/40 text-[9px] font-black uppercase tracking-widest italic tracking-widest">A y A Jacob S.R.L. — 2026</footer>
+      <footer className="py-6 text-center text-white/40 text-[9px] font-black uppercase tracking-widest italic">A y A Jacob S.R.L. — 2026</footer>
     </div>
   );
 }
