@@ -170,7 +170,7 @@ const RRHHView = () => {
         <div className="bg-white p-6 rounded-2xl border relative animate-in zoom-in-95 shadow-md">
           <button onClick={() => setSubPantalla(null)} className="absolute top-4 right-4 text-slate-300"><X className="w-5 h-5"/></button>
           {subPantalla === 'vacaciones' && <div className="space-y-3">
-            <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm text-slate-700" />
+            <input type="date" value={fechaOriginalDesde => setFechaDesde(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm text-slate-700" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
             <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm text-slate-700" />
             <button onClick={() => enviar("VACACIONES", `Del ${fechaDesde} al ${fechaHasta}`)} className="w-full bg-[#E20074] text-white py-3 rounded-xl font-black uppercase text-xs">Enviar Solicitud</button>
           </div>}
@@ -206,6 +206,7 @@ function GerenciaPage() {
   const [tipoCamion, setTipoCamion] = useState<'estandar' | 'chico'>('estandar');
   const [fuelPrices, setFuelPrices] = useState<any>({ super: 1000, quantium_nafta: 1200, x10: 1050, quantium_diesel: 1250 });
   
+  // camionState almacena el Tanque ID asignado a cada compartimento de flete [C1, C2, C3...]
   const [camionState, setCamionState] = useState<string[]>(new Array(7).fill('vacio'));
 
   const [manualEdit, setManualEdit] = useState<any>({
@@ -223,6 +224,7 @@ function GerenciaPage() {
     onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'solicitudes_rrhh'), orderBy('fecha', 'desc')), (snap) => {
       setSolicitudes(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(s => !s.archivado));
     });
+    // Recupera costos guardados de Firebase en tiempo real
     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'estado_actual', 'precios_combustible'), (snap) => {
       if (snap.exists()) setFuelPrices(snap.data().prices);
     });
@@ -233,6 +235,7 @@ function GerenciaPage() {
     setCamionState(new Array(tipo === 'estandar' ? 7 : 6).fill('vacio'));
   };
 
+  // Sube el cambio de precios en vivo a Firestore
   const handlePriceChange = async (fuelKey: string, val: number) => {
     const updatedPrices = { ...fuelPrices, [fuelKey]: val };
     setFuelPrices(updatedPrices);
@@ -241,6 +244,7 @@ function GerenciaPage() {
     } catch(e) { console.error(e); }
   };
 
+  // Agrupa y acumula los litros del flete apuntados al mismo tanque
   const litrosAsignadosPorTanque = useMemo(() => {
     const totales: Record<string, number> = {};
     camionState.forEach((tankId, idx) => {
@@ -252,6 +256,7 @@ function GerenciaPage() {
     return totales;
   }, [camionState, tipoCamion]);
 
+  // Costo total del flete multiplicando la cisterna por su precio correspondiente
   const totalCostoPedido = useMemo(() => {
     return camionState.reduce((acc, tankId, idx) => {
       if (!tankId || tankId === 'vacio') return acc;
@@ -262,6 +267,7 @@ function GerenciaPage() {
     }, 0);
   }, [camionState, tipoCamion, fuelPrices]);
 
+  // Validación multi-cisterna: detecta excesos sumados por tanque
   const validacionEspacioLibre = useMemo(() => {
     const alertas: any = [];
     if (!tankReadings) return [];
@@ -417,6 +423,7 @@ function GerenciaPage() {
                  </div>
               </div>
 
+              {/* Recorre las Cisternas del camión y permite apuntar múltiples de ellas a un mismo Tanque */}
               <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border space-y-3">
                 {CAMIONES_CONFIG[tipoCamion].map((cisterna, idx) => {
                   const tanqueAsignadoId = camionState[idx] || 'vacio';
@@ -443,9 +450,9 @@ function GerenciaPage() {
                             const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings[t.id].liters) : 0;
                             const libre = Math.max(0, Math.round(t.maxLiters - currentStock));
                             
-                            // Bloqueo Inteligente: si el tanque está seleccionado en OTRA cisterna, no aparece disponible
-                            const yaAsignadoEnOtroLado = camionState.some((id, cIdx) => id === t.id && cIdx !== idx);
-                            if (yaAsignadoEnOtroLado) return null;
+                            // Bloqueo Inteligente de Opciones Seleccionadas en otros compartimentos
+                            const yaAsignadoEnOtroCompartimento = camionState.some((id, cIdx) => id === t.id && cIdx !== idx);
+                            if (yaAsignadoEnOtroCompartimento) return null;
 
                             return (
                               <option key={t.id} value={t.id}>
@@ -460,6 +467,7 @@ function GerenciaPage() {
                 })}
               </div>
 
+              {/* Tablero sumador acumulativo por Tanque para control de rebalses */}
               <div className="bg-white p-5 rounded-3xl shadow-sm border space-y-2">
                 <h4 className="text-xs font-black uppercase text-slate-400 italic mb-2">Resumen de Carga Acumulada por Tanque</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -496,6 +504,7 @@ function GerenciaPage() {
                 </div>
               </div>
               
+              {/* ALARMA INTERACTIVA CONTRA SOBRE-CAPACIDADES ACUMULADAS */}
               <div className={`p-6 rounded-[2.5rem] text-white text-left shadow-xl sticky top-4 transition-all duration-300 ${validacionEspacioLibre.length > 0 ? 'bg-rose-950 border-4 border-red-500 shadow-red-900/20' : 'bg-slate-900'}`}>
                 <h3 className="font-black uppercase italic mb-4 text-[#E20074] text-xs">Cálculo del Pedido</h3>
                 {validacionEspacioLibre.length > 0 ? (
@@ -531,7 +540,7 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 3. PLANILLA DEL MES */}
+        {/* 3. PLANILLA DEL MES - CORREGIDO ERROR DE MAPEADO EN ESPEJO */}
         {activeMenu === 'datos' && (
           <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-200 animate-in fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b pb-4">
@@ -545,12 +554,12 @@ function GerenciaPage() {
             <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="w-full text-left text-xs text-slate-600">
                 <thead className="bg-slate-50 border-b"><tr><th className="p-3">Fecha</th><th className="p-3">Responsable Oficial</th>{TANKS_CONFIG.map(t=>(<th key={t.id} className="p-3 font-bold text-center">{t.name} (L)</th>))}<th className="p-3 text-right font-bold">Estado</th></tr></thead>
-                <tbody>{historialOficial.map(dia => (
-                  <tr key={dia.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="p-3 text-slate-800 font-black">{dia.date}</td>
-                    <td className="p-3 text-slate-600">{dia.responsable}</td>
+                <tbody>{historialOficial.map(log => (
+                  <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="p-3 text-slate-800 font-black">{log.date}</td>
+                    <td className="p-3 text-slate-600">{log.responsable}</td>
                     {TANKS_CONFIG.map(t => (
-                      <td key={t.id} className="p-3 text-center text-slate-800">{Math.round(dia.tanks?.[t.id]?.fin || 0).toLocaleString()} L</td>
+                      <td key={t.id} className="p-3 text-center text-slate-800">{Math.round(log.tanks?.[t.id]?.fin || 0).toLocaleString()} L</td>
                     ))}
                     <td className="p-3 text-right text-emerald-600">Auditado</td>
                   </tr>
@@ -812,7 +821,7 @@ function OperacionesEstacion() {
           <div className="bg-slate-800 rounded-3xl shadow-xl border p-6 text-white flex flex-col h-[600px]">
             <h1 className="text-2xl font-bold flex items-center gap-3 mb-6"><Database className="text-emerald-400" /> Nivel Online</h1>
             <div className="flex-1 flex items-end justify-center gap-4 md:gap-8 mt-4">
-              {TANKS_CONFIG.map((tank) => {
+              {tankReadings && TANKS_CONFIG.map((tank) => {
                 const currentLiters = tankReadings?.[tank.id]?.liters || 0;
                 const percentage = Math.min(100, Math.max(0, (currentLiters / tank.maxLiters) * 100));
                 return (
@@ -844,8 +853,8 @@ function OperacionesEstacion() {
                 <tbody>{filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b hover:bg-slate-50">
                     <td className="p-3 font-bold">{formatDateDisplay(log.date)}</td>
-                    {TANKS_CONFIG.map(t => (<td key={t.id} className="p-3 text-center font-bold">{Math.round(log.tanks[t.id]?.fin || 0).toLocaleString('es-AR')} L</td>))}
-                    <td className="p-3 text-slate-300 font-medium">{log.responsable}</td>
+                    {TANKS_CONFIG.map(t => (<td key={t.id} className="p-3 text-center font-bold">{Math.round(log.tanks?.[t.id]?.fin || 0).toLocaleString('es-AR')} L</td>))}
+                    <td className="p-3 text-slate-600 font-medium">{log.responsable}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -877,7 +886,7 @@ function Home() {
       {targetModulo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 text-slate-800">
           <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl w-full max-w-xs text-center border-t-8 border-[#E20074] animate-in zoom-in-95">
-            <h3 className="text-xl font-black text-gray-800 uppercase italic mb-8">Seguridad</h3>
+            <h3 className="text-xl font-black text-gray-800 uppercase italic mb-8">Security</h3>
             <form onSubmit={verificarPin}>
               <input autoFocus type="password" value={pinInput} onChange={(e) => setPinInput(e.target.value)} className="w-full p-4 border-b-4 border-[#E20074] bg-slate-50 text-center text-4xl tracking-[0.5rem] mb-10 outline-none font-black text-gray-800" placeholder="••••" />
               <div className="flex gap-4"><button type="button" onClick={() => setTargetModulo(null)} className="flex-1 font-bold text-slate-400 uppercase text-[9px] italic">Atrás</button><button type="submit" className="flex-1 bg-[#E20074] text-white py-4 rounded-2xl font-black uppercase text-[10px]">Entrar</button></div>
@@ -924,4 +933,4 @@ export default function App() {
       </Routes>
     </Router>
   );
-} 
+}
