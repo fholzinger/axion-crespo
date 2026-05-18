@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3, MessageSquare, Camera, Eye, Printer, Check, BarChart3 } from 'lucide-react';
+import { Coffee, Fuel, CircleDollarSign, Droplets, PlusCircle, Clock, FileText, Trash2, ClipboardList, Database, Ruler, AlertTriangle, ArrowRight, Send, Truck, CheckCircle2, Save, User, X, Lock, Unlock, Download, ShieldAlert, Key, Info, PackagePlus, Calendar, Loader2, Calculator, History, Edit3, MessageSquare, Camera, Eye, Printer, Check, BarChart3, AlertCircle } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, getDocs, addDoc, query, orderBy, updateDoc } from 'firebase/firestore';
@@ -42,7 +42,7 @@ const SPOT_TASKS = [
   { id: 'p11', title: 'PEDIDO DON LUCAS (LUNES)', category: 'PEDIDOS', shift: 'MAÑANA' },
   { id: 'l1', title: 'LIMPIEZA HORNO CON VINAGRE', category: 'LIMPIEZA', shift: 'MAÑANA' },
   { id: 'l2', title: 'LIMPIEZA CARAMELERA (MIÉRCOLES)', category: 'LIMPIEZA', shift: 'MAÑANA' },
-  { id: 'l3', title: 'LIMPIEZA MUEBLES (JUEVES)', category: 'LIMPIEZA', shift: 'MANavarra' },
+  { id: 'l3', title: 'LIMPIEZA MUEBLES (JUEVES)', category: 'LIMPIEZA', shift: 'MAÑANA' },
   { id: 'l4', title: 'LIMPIEZA TOTAL HELADERAS/FREEZER (MENSUAL)', category: 'LIMPIEZA', shift: 'MAÑANA' },
   { id: 'l5', title: 'LIMPIEZA DE PISO', category: 'LIMPIEZA', shift: 'AMBOS' },
   { id: 'l6', title: 'LIMPIEZA VIDRIOS (MIER A VIER)', category: 'LIMPIEZA', shift: 'MAÑANA' },
@@ -104,14 +104,14 @@ const appId = "mi-estacion-crespo";
 
 signInAnonymously(auth).catch(() => console.log("Firebase Conectado"));
 
-// --- FUNCIÓN ANCORA REPARADA (Sana el ReferenceError de producción) ---
+// --- CONTROL DE TIEMPO DIARIO ---
 const getYesterdayISOString = () => {
   const today = new Date();
   const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
   return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 };
 
-// --- FÓRMULA TRIGONOMÉTRICA BLINDADA Y SANEADA ---
+// --- FÓRMULA TRIGONOMÉTRICA BLINDADA ---
 const tankLitrosTrig = (mm: number, config: any): number => {
   if (!mm || mm <= 0) return 0;
   if (mm >= config.diameterMm) return config.maxLiters;
@@ -203,6 +203,57 @@ const RRHHView = () => {
 };
 
 // ==========================================
+// COMPONENTE: REPORTES DE INCIDENCIA EN PLAYA
+// ==========================================
+const IncidenciasView = () => {
+  const [empleadoSel, setEmpleadoSel] = useState("");
+  const [pinInput, setPinInput] = useState("");
+  const [sesionActiva, setSesionActiva] = useState<string | null>(null);
+  const [textoIncidente, setTextoIncidente] = useState("");
+
+  const enviarIncidente = async () => {
+    if (!textoIncidente.trim()) { alert("Por favor redacte la novedad."); return; }
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'reportes_incidentes'), {
+        empleado: sesionActiva, detalle: textoIncidente, fecha: new Date().toISOString(), archivado: false
+      });
+      alert("Incidencia inyectada y enviada a Gerencia ✅"); setTextoIncidente("");
+    } catch (e) { alert("Error al subir a la base"); }
+  };
+
+  if (!sesionActiva) return (
+    <div className="bg-white p-6 rounded-2xl border max-w-md mx-auto my-4 text-slate-800 shadow-sm">
+      <h2 className="text-sm font-black text-center mb-4 uppercase italic flex items-center justify-center gap-2 text-rose-600"><AlertCircle className="w-4 h-4"/> Firma de Turno (Incidencias)</h2>
+      <select value={empleadoSel} onChange={(e) => setEmpleadoSel(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold mb-3 outline-none text-xs text-slate-700">
+        <option value="">-- SELECCIONE SU NOMBRE --</option>
+        {EMPLEADOS.map(e => <option key={e.nombre} value={e.nombre}>{e.nombre}</option>)}
+      </select>
+      {empleadoSel && <div className="space-y-3 animate-in fade-in">
+        <input type="password" value={pinInput} onChange={(e) => setPinInput(e.target.value)} placeholder="PIN" className="w-full p-3 text-center text-3xl border rounded-xl font-black outline-none bg-slate-50 tracking-widest text-slate-800" />
+        <button onClick={() => {
+          const emp = EMPLEADOS.find(e => e.nombre === empleadoSel);
+          if (emp && pinInput === emp.pin) { setSesionActiva(emp.nombre); setPinInput(""); } else { alert("PIN Incorrecto"); }
+        }} className="w-full bg-rose-600 text-white py-3 rounded-xl font-black uppercase italic text-xs tracking-wider">Validar Identidad</button>
+      </div>}
+    </div>
+  );
+
+  return (
+    <div className="bg-white p-6 rounded-2xl border max-w-md mx-auto my-2 text-slate-800 shadow-sm space-y-4">
+      <div className="flex justify-between items-center border-b pb-2">
+        <p className="font-black text-xs uppercase italic text-rose-600">Responsable: {sesionActiva}</p>
+        <button onClick={() => setSesionActiva(null)} className="text-slate-400 font-bold text-[10px] uppercase underline">Cerrar</button>
+      </div>
+      <div className="space-y-2">
+        <label className="block text-[10px] uppercase font-black text-slate-400">Describa lo ocurrido en la playa o surtidores:</label>
+        <textarea value={textoIncidente} onChange={(e) => setTextoIncidente(e.target.value)} className="w-full h-36 p-3 bg-slate-50 border rounded-xl font-medium text-sm outline-none text-slate-700 leading-relaxed" placeholder="Falla en manguera / diferencias en caja..." />
+        <button onClick={enviarIncidente} className="w-full bg-rose-600 text-white py-3 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 shadow-md"><Send className="w-4 h-4"/> Reportar Novedad</button>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
 // MÓDULO INDEPENDIENTE DE GERENCIA
 // ==========================================
 function GerenciaPage() {
@@ -210,13 +261,13 @@ function GerenciaPage() {
   const [activeMenu, setActiveMenu] = useState('tanques'); 
   const [tankReadings, setTankReadings] = useState<any>(null);
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
+  const [incidentes, setIncidentes] = useState<any[]>([]);
   const [historialOficial, setHistorialOficial] = useState<any[]>([]);
   const [viewImg, setViewImg] = useState<string | null>(null);
   
   const [tipoCamion, setTipoCamion] = useState<'estandar' | 'chico'>('estandar');
   const [fuelPrices, setFuelPrices] = useState<any>({ super: 1000, quantium_nafta: 1200, x10: 1050, quantium_diesel: 1250 });
   
-  // camionState almacena el Tanque ID asignado a cada compartimento de cisterna [C1, C2, C3...]
   const [camionState, setCamionState] = useState<string[]>(new Array(7).fill('vacio'));
 
   const [manualEdit, setManualEdit] = useState<any>({
@@ -234,7 +285,9 @@ function GerenciaPage() {
     onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'solicitudes_rrhh'), orderBy('fecha', 'desc')), (snap) => {
       setSolicitudes(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(s => !s.archivado));
     });
-    // Recupera costos fijos reales de Firebase al ingresar
+    onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'reportes_incidentes'), orderBy('fecha', 'desc')), (snap) => {
+      setIncidentes(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(i => !i.archivado));
+    });
     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'estado_actual', 'precios_combustible'), (snap) => {
       if (snap.exists()) setFuelPrices(snap.data().prices);
     });
@@ -245,7 +298,6 @@ function GerenciaPage() {
     setCamionState(new Array(tipo === 'estandar' ? 7 : 6).fill('vacio'));
   };
 
-  // Función para guardar los precios de costo directamente en Firebase en vivo sin borrarse al F5
   const handlePriceChange = async (fuelKey: string, val: number) => {
     const updatedPrices = { ...fuelPrices, [fuelKey]: val };
     setFuelPrices(updatedPrices);
@@ -254,7 +306,6 @@ function GerenciaPage() {
     } catch(e) { console.error(e); }
   };
 
-  // Agrupa y acumula los litros del flete apuntados al mismo tanque
   const litrosAsignadosPorTanque = useMemo(() => {
     const totales: Record<string, number> = {};
     camionState.forEach((tankId, idx) => {
@@ -266,7 +317,6 @@ function GerenciaPage() {
     return totales;
   }, [camionState, tipoCamion]);
 
-  // Costo total del flete sumando los precios individuales de cada cisterna cargada
   const totalCostoPedido = useMemo(() => {
     return camionState.reduce((acc, tankId, idx) => {
       if (!tankId || tankId === 'vacio') return acc;
@@ -277,7 +327,6 @@ function GerenciaPage() {
     }, 0);
   }, [camionState, tipoCamion, fuelPrices]);
 
-  // Validación de espacio libre: compara la suma de cisternas contra el espacio disponible
   const validacionEspacioLibre = useMemo(() => {
     const alertas: any = [];
     if (!tankReadings) return [];
@@ -295,47 +344,6 @@ function GerenciaPage() {
     });
     return alertas;
   }, [litrosAsignadosPorTanque, tankReadings]);
-
-  const archivarMensaje = async (id: string) => {
-    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'solicitudes_rrhh', id), { archivado: true });
-  };
-
-  const exportarRRHHeExcel = () => {
-    const data = solicitudes.map(s => ({ 'Fecha': new Date(s.fecha).toLocaleString(), 'Empleado': s.empleado, 'Tipo': s.tipo, 'Contenido': s.tipo === 'MEDICO' ? 'Certificado Médico' : s.contenido }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Solicitudes RRHH");
-    XLSX.writeFile(wb, "Reporte_Buzon_RRHH.xlsx");
-  };
-
-  const exportarPlanillaOficial = () => {
-    const data = historialOficial.map(dia => {
-      const row: any = { 'Fecha': dia.date, 'Responsable': dia.responsable };
-      TANKS_CONFIG.forEach(t => { row[t.name] = Math.round(dia.tanks?.[t.id]?.fin || 0); });
-      return row;
-    });
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Historial Oficial");
-    XLSX.writeFile(wb, "Planilla_Mes_Consolidado.xlsx");
-  };
-
-  const loadDataForDate = (selectedDate: string) => {
-    const existingLog = historialOficial.find(log => log.date === selectedDate);
-    if (existingLog) {
-      setManualEdit({ isOpen: true, id: existingLog.id, date: existingLog.date, responsable: existingLog.responsable, tanks: { ...existingLog.tanks } });
-    } else {
-      const priorLogs = historialOficial.filter(log => log.date < selectedDate).sort((a,b) => b.date.localeCompare(a.date));
-      const lastLog = priorLogs.length > 0 ? priorLogs[0] : null;
-      const freshTanks: any = {};
-      TANKS_CONFIG.forEach(t => { freshTanks[t.id] = { inicio: lastLog ? lastLog.tanks[t.id].fin : 0, desc: 0, fin: 0, lv: 0 }; });
-      setManualEdit({ isOpen: true, id: null, date: selectedDate, responsable: 'Gerencia (Carga Manual)', tanks: freshTanks });
-    }
-  };
-
-  const handleManualTankChange = (tankId: string, field: string, value: string) => {
-    setManualEdit((prev: any) => ({ ...prev, tanks: { ...prev.tanks, [tankId]: { ...prev.tanks[tankId], [field]: value } } }));
-  };
 
   const saveManualEntry = async () => {
     const logIdToSave = manualEdit.id || Date.now();
@@ -364,9 +372,58 @@ function GerenciaPage() {
     } catch (error) { console.error(error); }
   };
 
+  const archivarMensaje = async (id: string) => {
+    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'solicitudes_rrhh', id), { archivado: true });
+  };
+
+  const archivarIncidente = async (id: string) => {
+    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reportes_incidentes', id), { archivado: true });
+  };
+
+  const exportarRRHHeExcel = () => {
+    const data = solicitudes.map(s => ({ 'Fecha': new Date(s.fecha).toLocaleString(), 'Empleado': s.empleado, 'Tipo': s.tipo, 'Contenido': s.tipo === 'MEDICO' ? 'Certificado adjunto en sistema' : s.contenido }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Solicitudes RRHH");
+    XLSX.writeFile(wb, "Reporte_Buzon_RRHH.xlsx");
+  };
+
+  const exportarPlanillaOficial = () => {
+    const data = historialOficial.map(dia => {
+      const row: any = { 'Fecha': dia.date, 'Responsable': dia.responsable };
+      TANKS_CONFIG.forEach(t => { row[t.name] = Math.round(dia.tanks?.[t.id]?.fin || 0); });
+      return row;
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Historial Oficial");
+    XLSX.writeFile(wb, "Planilla_Mes_Consolidado.xlsx");
+  };
+
+  const handleManualTankChange = (tankId: string, field: string, value: string) => {
+    setManualEdit((prev: any) => ({ ...prev, tanks: { ...prev.tanks, [tankId]: { ...prev.tanks[tankId], [field]: value } } }));
+  };
+
+  const loadDataForDate = (selectedDate: string) => {
+    const existingLog = historialOficial.find(log => log.date === selectedDate);
+    if (existingLog) {
+      setManualEdit({ isOpen: true, id: existingLog.id, date: existingLog.date, responsable: existingLog.responsable, tanks: { ...existingLog.tanks } });
+    } else {
+      const priorLogs = historialOficial.filter(log => log.date < selectedDate).sort((a,b) => b.date.localeCompare(a.date));
+      const lastLog = priorLogs.length > 0 ? priorLogs[0] : null;
+      const freshTanks: any = {};
+      TANKS_CONFIG.forEach(t => { freshTanks[t.id] = { inicio: lastLog ? lastLog.tanks[t.id].fin : 0, desc: 0, fin: 0, lv: 0 }; });
+      setManualEdit({ isOpen: true, id: null, date: selectedDate, responsable: 'Gerencia (Carga Manual)', tanks: freshTanks });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans relative text-slate-800">
-      {viewImg && <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setViewImg(null)}><img src={viewImg} className="max-w-full max-h-full object-contain" /></div>}
+      {viewImg && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setViewImg(null)}>
+          <img src={viewImg} className="max-w-full max-h-full object-contain rounded-xl shadow-2xl border border-white/10 animate-in zoom-in-95" alt="Certificado Médico" />
+        </div>
+      )}
       
       {manualEdit.isOpen && (
         <div className="fixed inset-0 z-[55] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -399,7 +456,7 @@ function GerenciaPage() {
         </div>
       )}
 
-      {/* SIDEBAR EXCLUSIVO MAGENTA Y BLANCO */}
+      {/* SIDEBAR CENTRAL EXCLUSIVO MAGENTA */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col shadow-sm z-20">
         <div className="flex items-center gap-3 mb-8 pb-4 border-b">
           <div className="h-9 w-9 bg-[#E20074] rounded-xl flex items-center justify-center font-black text-white text-xs italic">AX</div>
@@ -410,7 +467,8 @@ function GerenciaPage() {
             { id: 'tanques', label: 'Stock Online', icon: <Database className="w-4 h-4"/> },
             { id: 'pedido', label: 'Pedido de Combustible', icon: <Truck className="w-4 h-4"/> },
             { id: 'datos', label: 'Planilla del Mes', icon: <ClipboardList className="w-4 h-4"/> },
-            { id: 'rrhh', label: 'Buzón de RRHH', icon: <MessageSquare className="w-4 h-4"/> }
+            { id: 'rrhh', label: 'Buzón de RRHH', icon: <MessageSquare className="w-4 h-4"/> },
+            { id: 'incidentes', label: 'Reporte de Incidentes', icon: <AlertTriangle className="w-4 h-4 text-rose-500"/> }
           ].map(item => (
             <button key={item.id} onClick={() => setActiveMenu(item.id)} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeMenu === item.id ? 'bg-[#E20074] text-white shadow-md shadow-pink-200' : 'text-slate-500 hover:bg-slate-50'}`}>{item.icon} {item.label}</button>
           ))}
@@ -442,7 +500,7 @@ function GerenciaPage() {
           </div>
         )}
 
-        {/* 2. PEDIDO DE COMBUSTIBLE MODIFICADO CON SELECTOR EXCLUSIVO ANTI-DUPLICADOS */}
+        {/* 2. PEDIDO DE COMBUSTIBLE */}
         {activeMenu === 'pedido' && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 text-center animate-in fade-in">
             <div className="xl:col-span-2 space-y-4 text-left">
@@ -454,7 +512,6 @@ function GerenciaPage() {
                  </div>
               </div>
 
-              {/* Recorre las Cisternas del camión (C1, C2...) y permite apuntar múltiples de ellas a un mismo Tanque */}
               <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border space-y-3">
                 {CAMIONES_CONFIG[tipoCamion].map((cisterna, idx) => {
                   const tanqueAsignadoId = camionState[idx] || 'vacio';
@@ -481,9 +538,8 @@ function GerenciaPage() {
                             const currentStock = tankReadings?.[t.id]?.liters ? parseFloat(tankReadings[t.id].liters) : 0;
                             const libre = Math.max(0, Math.round(t.maxLiters - currentStock));
                             
-                            // Bloqueo de Cisternas Ocupadas: si un tanque ya está seleccionado en OTRA cisterna, no se muestra
-                            const yaAsignadoEnOtroCompartimento = camionState.some((id, cIdx) => id === t.id && cIdx !== idx);
-                            if (yaAsignadoEnOtroCompartimento) return null;
+                            const yaAsignadoEnOtroLado = camionState.some((id, cIdx) => id === t.id && cIdx !== idx);
+                            if (yaAsignadoEnOtroLado) return null;
 
                             return (
                               <option key={t.id} value={t.id}>
@@ -498,7 +554,6 @@ function GerenciaPage() {
                 })}
               </div>
 
-              {/* Tablero sumador acumulativo por Tanque para control de rebalses */}
               <div className="bg-white p-5 rounded-3xl shadow-sm border space-y-2">
                 <h4 className="text-xs font-black uppercase text-slate-400 italic mb-2">Resumen de Carga Acumulada por Tanque</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -535,7 +590,6 @@ function GerenciaPage() {
                 </div>
               </div>
               
-              {/* ALARMA INTERACTIVA CONTRA SOBRE-CAPACIDADES ACUMULADAS */}
               <div className={`p-6 rounded-[2.5rem] text-white text-left shadow-xl sticky top-4 transition-all duration-300 ${validacionEspacioLibre.length > 0 ? 'bg-rose-950 border-4 border-red-500 shadow-red-900/20' : 'bg-slate-900'}`}>
                 <h3 className="font-black uppercase italic mb-4 text-[#E20074] text-xs">Cálculo del Pedido</h3>
                 {validacionEspacioLibre.length > 0 ? (
@@ -600,6 +654,7 @@ function GerenciaPage() {
           </div>
         )}
 
+        {/* 4. SANEADO: BUZÓN DE RRHH ADENTRO DE GERENCIA (YA NO QUEDA EN BLANCO) */}
         {activeMenu === 'rrhh' && (
           <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="bg-white p-5 rounded-3xl border shadow-sm flex justify-between items-center border-t-4 border-[#E20074]">
@@ -608,11 +663,53 @@ function GerenciaPage() {
             </div>
             
             {solicitudes.length === 0 ? (
-              <div className="bg-white border rounded-2xl p-10 text-center font-bold text-slate-400 italic">Buzón de sugerencias vacío.</div>
+              <div className="bg-white border rounded-2xl p-10 text-center font-bold text-slate-400 italic">Buzón de solicitudes vacío.</div>
             ) : solicitudes.map(sol => (
                <div key={sol.id} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
-                  <div className="flex-1"><div className="flex items-center gap-2 mb-1.5"><span className="text-[8px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded uppercase tracking-wider">{sol.tipo}</span><span className="text-[10px] text-slate-300 font-bold">{new Date(sol.fecha).toLocaleString()}</span></div><h4 className="font-black text-slate-800 text-sm uppercase italic mb-2">{sol.empleado}</h4><div className="p-3 bg-slate-50 rounded-xl">{sol.tipo === 'MEDICO' ? <button onClick={()=>setViewImg(sol.contenido)} className="text-emerald-600 font-black text-xs uppercase flex items-center gap-1.5"><Eye className="w-4 h-4"/> Ver Certificado</button> : <p className="text-slate-600 text-xs font-semibold leading-relaxed">"{sol.contenido}"</p>}</div></div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[8px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded uppercase tracking-wider">{sol.tipo}</span>
+                      <span className="text-[10px] text-slate-300 font-bold">{new Date(sol.fecha).toLocaleString()}</span>
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm uppercase italic mb-2">{sol.empleado}</h4>
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      {sol.tipo === 'MEDICO' ? (
+                        <button onClick={() => setViewImg(sol.contenido)} className="text-emerald-600 hover:text-emerald-700 font-black text-xs uppercase flex items-center gap-1.5 outline-none transition-colors">
+                          <Eye className="w-4 h-4"/> Abrir Certificado Adjunto
+                        </button>
+                      ) : (
+                        <p className="text-slate-600 text-xs font-semibold leading-relaxed">"{sol.contenido}"</p>
+                      )}
+                    </div>
+                  </div>
                   <button onClick={() => archivarMensaje(sol.id)} className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-black text-[9px] uppercase tracking-wider rounded-xl border transition-colors">Seleccionar como Leído</button>
+               </div>
+            ))}
+          </div>
+        )}
+
+        {/* 5. RECEPTOR DE GERENCIA: REPORTE DE INCIDENTES OCURRIDOS EN EL TURNO */}
+        {activeMenu === 'incidentes' && (
+          <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+            <div className="bg-white p-5 rounded-3xl border shadow-sm border-t-4 border-rose-500">
+               <h3 className="font-black uppercase italic text-slate-800 text-sm">Incidentes y Novedades Reportadas en Playa ({incidentes.length})</h3>
+            </div>
+            
+            {incidentes.length === 0 ? (
+              <div className="bg-white border rounded-2xl p-10 text-center font-bold text-slate-400 italic">No hay incidentes reportados en este turno.</div>
+            ) : incidentes.map(inc => (
+               <div key={inc.id} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[8px] font-black bg-rose-50 text-rose-600 px-2 py-0.5 rounded uppercase tracking-wider">INCIDENCIA EN TURNO</span>
+                      <span className="text-[10px] text-slate-300 font-bold">{new Date(inc.fecha).toLocaleString()}</span>
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm uppercase italic mb-2">Operador: {inc.empleado}</h4>
+                    <div className="p-3 bg-red-50/50 border border-red-100 rounded-xl">
+                      <p className="text-slate-700 text-xs font-semibold leading-relaxed">"{inc.detalle}"</p>
+                    </div>
+                  </div>
+                  <button onClick={() => archivarIncidente(inc.id)} className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-black text-[9px] uppercase tracking-wider rounded-xl border transition-colors">Marcar como Resuelto</button>
                </div>
             ))}
           </div>
@@ -728,52 +825,6 @@ function OperacionesEstacion() {
     setModalConfig({ isOpen: true, type: 'success', title: '¡Cierre Exitoso!', message: `Los datos se han guardado con fecha ${formatDateDisplay(fechaAyerIso)} en la nube.`, inputValue: '', onConfirm: () => setActiveTab('registro') });
   };
 
-  if (isSpotView) {
-    if (!responsableSpot) {
-      return (
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-[30px] shadow-xl max-w-md w-full text-slate-800">
-            <h2 className="text-xl font-bold text-center mb-6">Operador en Turno (Spot!):</h2>
-            <div className="grid gap-3">
-              {['Cintia', 'Fiorella', 'Tatiana'].map(nombre => (
-                <button key={nombre} onClick={() => setResponsableSpot(nombre)} className="w-full p-4 bg-slate-50 border rounded-xl font-bold text-lg flex items-center justify-between hover:bg-slate-100 text-slate-700">{nombre} <ArrowRight/></button>
-              ))}
-            </div>
-            <button onClick={() => navigate('/')} className="mt-4 text-slate-400 font-bold block mx-auto text-xs uppercase tracking-wider outline-none">Volver al Inicio</button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
-        <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden text-slate-800">
-           <div className="bg-[#D6006E] p-6 flex justify-between items-center text-white">
-              <div><h2 className="text-2xl font-black ">CHECKLIST SPOT!</h2><p className="text-xs font-bold">OPERADOR: {responsableSpot.toUpperCase()}</p></div>
-              <button onClick={() => { setResponsableSpot(''); navigate('/'); }} className="p-2 bg-white/20 rounded-full"><X/></button>
-           </div>
-           <div className="flex border-b">
-             <button onClick={() => setSpotTab('mañana')} className={`flex-1 py-4 font-bold ${spotTab === 'mañana' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>☀️ Mañana / Tareas</button>
-             <button onClick={() => setSpotTab('tarde')} className={`flex-1 py-4 font-bold ${spotTab === 'tarde' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>📅 Buzón RRHH</button>
-           </div>
-           <div className="p-4 bg-slate-50 min-h-[400px]">
-              {spotTab === 'mañana' ? (
-                SPOT_TASKS.filter(task => task.shift === 'AMBOS' || task.shift === 'MAÑANA').map(task => {
-                  const status = spotChecklist[task.id] || null;
-                  return (
-                    <div key={task.id} className={`flex flex-col gap-2 p-4 rounded-2xl border bg-white mb-2 ${status === 'REALIZADO' ? 'bg-green-50' : ''}`}>
-                      <p className="font-bold">{task.title}</p>
-                      <div className="flex gap-2"><button onClick={() => updateSpotTask(task.id, 'REALIZADO')} className="bg-green-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold">Hecho</button></div>
-                    </div>
-                  );
-                })
-              ) : <RRHHView />}
-           </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4 md:p-8 font-sans text-slate-800 w-full">
       {modalConfig.isOpen && (
@@ -789,12 +840,14 @@ function OperacionesEstacion() {
         </div>
       )}
 
+      {/* MENU SUPERIOR DE PLAYA EXPANDIDO CON REPORTE DE INCIDENCIAS */}
       <div className="max-w-7xl w-full mb-6 flex flex-wrap lg:flex-nowrap gap-2 bg-white p-2 rounded-2xl shadow-sm border">
         <button onClick={() => setActiveTab('varillas')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'varillas' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500'}`}><Ruler className="w-4 h-4"/> 1. Varillado</button>
         <button onClick={() => setActiveTab('descarga')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'descarga' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500'}`}><Truck className="w-4 h-4"/> 2. Descarga Camión</button>
         <button onClick={() => setActiveTab('monitor')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'monitor' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500'}`}><Database className="w-4 h-4"/> 3. Monitor Online</button>
         <button onClick={() => setActiveTab('registro')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'registro' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500'}`}><ClipboardList className="w-4 h-4"/> 4. Planilla Mes</button>
         <button onClick={() => setActiveTab('rrhh')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'rrhh' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-500'}`}><MessageSquare className="w-4 h-4"/> 5. Buzón RRHH</button>
+        <button onClick={() => setActiveTab('incidencias')} className={`flex-1 py-3 rounded-xl font-bold flex justify-center items-center gap-2 ${activeTab === 'incidencias' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-500'}`}><AlertTriangle className="w-4 h-4"/> 6. Reporte Incidencias</button>
         <button onClick={() => navigate('/')} className="px-4 py-3 text-slate-400 hover:text-red-500"><X/></button>
       </div>
 
@@ -884,7 +937,7 @@ function OperacionesEstacion() {
                 <tbody>{filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b hover:bg-slate-50">
                     <td className="p-3 font-bold">{formatDateDisplay(log.date)}</td>
-                    {TANKS_CONFIG.map(t => (<td key={t.id} className="p-3 text-center font-bold">{Math.round(log.tanks?.[t.id]?.fin || 0).toLocaleString('es-AR')} L</td>))}
+                    {TANKS_CONFIG.map(t => (<td key={t.id} className="p-3 text-center text-slate-800">{Math.round(log.tanks?.[t.id]?.fin || 0).toLocaleString()} L</td>))}
                     <td className="p-3 text-slate-600 font-medium">{log.responsable}</td>
                   </tr>
                 ))}</tbody>
@@ -894,6 +947,8 @@ function OperacionesEstacion() {
         )}
 
         {activeTab === 'rrhh' && <RRHHView />}
+
+        {activeTab === 'incidencias' && <IncidenciasView />}
       </div>
     </div>
   );
