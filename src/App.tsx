@@ -1195,7 +1195,7 @@ function Home() {
       )}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20 py-8 px-10 flex items-center gap-4 shadow-xl">
         <div className="h-14 w-14 bg-white p-2 rounded-2xl shadow-xl flex items-center justify-center font-black italic text-pink-600 text-xs">AXION</div>
-        <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">AXION Crespo — A y A Jacob S.R.L.</p></div>
+        <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa - AXION energy Crespo</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">A y A Jacob S.R.L.</p></div>
       </header>
       <main className="flex-grow flex items-center justify-center p-6 text-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
@@ -1213,7 +1213,7 @@ function Home() {
           ))}
         </div>
       </main>
-      <footer className="py-6 text-center text-white/40 text-[9px] font-black uppercase tracking-widest italic">A y A Jacob S.R.L. — 2026</footer>
+      <footer className="py-6 text-center text-white/40 text-[9px] font-black uppercase tracking-widest italic">© A y A Jacob S.R.L. — 2026</footer>
     </div>
   );
 }
