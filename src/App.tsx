@@ -28,8 +28,8 @@ const getYesterdayISOString = () => {
 // ==========================================
 const PERSONAL_SPOT = [
   { nombre: "Cintia", pin: "4040" },
-  { nombre: "Fiorella", pin: "4225" },
-  { nombre: "Tatiana", pin: "1903" }
+  { nombre: "Fiorella", pin: "1903" },
+  { nombre: "Tatiana", pin: "4225" }
 ];
 
 const CONFIG_TAREAS_SPOT = [
@@ -305,6 +305,7 @@ function GerenciaPage() {
       logs.sort((a: any, b: any) => b.date.localeCompare(a.date));
       setHistorialOficial(logs);
     });
+    // RRHH lee de la colección unificada que usan tanto Playeros como Spot
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'solicitudes_rrhh'), (snap) => {
       const rrhh = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((s:any) => !s.archivado);
       rrhh.sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
@@ -319,7 +320,7 @@ function GerenciaPage() {
       if (snap.exists()) setFuelPrices(snap.data().prices);
     });
     
-    // ESCUCHADOR EXCLUSIVO PARA AUDITORÍA SPOT EN GERENCIA (Sin orderBy para evitar errores de índice)
+    // ESCUCHADOR EXCLUSIVO PARA AUDITORÍA SPOT EN GERENCIA
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'historial_checklist_spot'), (snap) => {
       const spotDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       spotDocs.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -525,6 +526,7 @@ function GerenciaPage() {
       </aside>
 
       <main className="flex-grow p-4 md:p-8 overflow-y-auto">
+        {/* PLAYA: MONITOR */}
         {activeMenu === 'tanques' && (
           <div className="space-y-6 animate-in fade-in">
             <h2 className="text-xl font-black italic uppercase text-slate-800 flex items-center gap-2 border-b pb-2"><Database className="text-[#E20074]"/> Monitor Online en Tiempo Real (Sincronizado)</h2>
@@ -547,6 +549,7 @@ function GerenciaPage() {
           </div>
         )}
 
+        {/* PLAYA: PEDIDOS */}
         {activeMenu === 'pedido' && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 text-center animate-in fade-in">
             <div className="xl:col-span-2 space-y-4 text-left">
@@ -770,7 +773,7 @@ function OperacionesEstacion() {
   const [historialDia, setHistorialDia] = useState<Record<string, string>>({});
   const [mensualesRealizadas, setMensualesRealizadas] = useState<string[]>([]);
 
-  // BASES MATEMÁTICAS FECHAS SPOT (Usando useMemo para evitar loop de re-render de Firebase)
+  // BASES MATEMÁTICAS FECHAS SPOT (Dinámicas en renderizado para evitar cacheo de hora)
   const baseHoy = useMemo(() => new Date(), []);
   const fechaHoyStr = useMemo(() => `${baseHoy.getFullYear()}-${String(baseHoy.getMonth() + 1).padStart(2, '0')}-${String(baseHoy.getDate()).padStart(2, '0')}`, [baseHoy]);
   const numeroDiaSemana = baseHoy.getDay(); 
@@ -802,7 +805,7 @@ function OperacionesEstacion() {
     });
   }, [isSpotView, responsableSpot, fechaHoyStr, baseHoy]);
 
-  // ALGORITMO FILTRO TAREAS SPOT
+  // ALGORITMO FILTRO TAREAS SPOT (Aplica al instante)
   const tareasFiltradasHoy = useMemo(() => {
     return CONFIG_TAREAS_SPOT.filter(tarea => {
       if (tarea.shift !== 'AMBOS' && tarea.shift !== turnoSpot) return false;
@@ -819,7 +822,7 @@ function OperacionesEstacion() {
       }
       return false;
     });
-  }, [numeroDiaSemana, diaDelAño, turnoSpot, diffPastilla, diffAntartida, mensualesRealizadas, baseHoy]);
+  }, [numeroDiaSemana, diaDelAño, turnoSpot, diffPastilla, diffAntartida, mensualesRealizadas]);
 
   // TAREAS PENDIENTES (FILTRO PARA QUE DESAPAREZCAN AL PRESIONAR)
   const tareasPendientes = tareasFiltradasHoy.filter(tarea => !historialDia[tarea.id]);
@@ -971,10 +974,18 @@ function OperacionesEstacion() {
               <div><h2 className="text-2xl font-black ">CHECKLIST SPOT!</h2><p className="text-xs font-bold">OPERADOR: {responsableSpot.toUpperCase()} | {turnoSpot}</p></div>
               <button onClick={() => { setResponsableSpot(''); setTurnoSpot(null); setPinInputSpot(''); navigate('/'); }} className="p-2 bg-white/20 rounded-full"><X/></button>
            </div>
-           <div className="flex border-b">
+           
+           {/* MENÚ SUPERIOR DE SPOT! CON BOTÓN DE DESCARGA */}
+           <div className="flex border-b flex-wrap">
              <button onClick={() => setActiveSubTab('checklist')} className={`flex-1 py-4 font-bold text-xs uppercase tracking-wider ${activeSubTab === 'checklist' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>📋 Tareas del Día</button>
              <button onClick={() => setActiveSubTab('rrhh')} className={`flex-1 py-4 font-bold text-xs uppercase tracking-wider ${activeSubTab === 'rrhh' ? 'text-[#D6006E] border-b-4 border-[#D6006E]' : 'text-slate-400'}`}>✉️ Buzón RRHH Directo</button>
+             
+             {/* NUEVO BOTÓN: MANUAL OPERATIVO SPOT */}
+             <a href="/Manual_de_operaciones_Spot.pdf" target="_blank" rel="noopener noreferrer" className="flex-1 py-4 font-bold text-xs uppercase tracking-wider text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 flex items-center justify-center gap-2 border-l border-slate-100 transition-colors">
+               <FileText className="w-4 h-4"/> 📖 Manual Operativo
+             </a>
            </div>
+
            <div className="p-4 bg-slate-50 min-h-[450px]">
               {activeSubTab === 'checklist' ? (
                 <div className="space-y-3 animate-in fade-in duration-200">
@@ -1195,7 +1206,7 @@ function Home() {
       )}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20 py-8 px-10 flex items-center gap-4 shadow-xl">
         <div className="h-14 w-14 bg-white p-2 rounded-2xl shadow-xl flex items-center justify-center font-black italic text-pink-600 text-xs">AXION</div>
-        <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa - AXION energy Crespo</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">A y A Jacob S.R.L.</p></div>
+        <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa v6.0</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">AXION Crespo — A y A Jacob S.R.L.</p></div>
       </header>
       <main className="flex-grow flex items-center justify-center p-6 text-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
@@ -1213,7 +1224,7 @@ function Home() {
           ))}
         </div>
       </main>
-      <footer className="py-6 text-center text-white/40 text-[9px] font-black uppercase tracking-widest italic">© A y A Jacob S.R.L. — 2026</footer>
+      <footer className="py-6 text-center text-white/40 text-[9px] font-black uppercase tracking-widest italic">A y A Jacob S.R.L. — 2026</footer>
     </div>
   );
 }
