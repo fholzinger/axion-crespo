@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx';
 import PlayaIcon from './assets/playa.png'; 
 import SpotIcon from './assets/spot.png';
 import AxionLogo from './assets/logo.png'; 
-
+import GerenciaLogo from './assets/gerencia.png'; 
 // ==========================================
 // UTILIDADES GLOBALES (Anti-Pantalla Blanca)
 // ==========================================
@@ -1215,15 +1215,17 @@ function Home() {
         </div>
       )}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20 py-8 px-10 flex items-center gap-4 shadow-xl">
-        <div className="h-14 w-14 bg-white p-2 rounded-2xl shadow-xl flex items-center justify-center font-black italic text-pink-600 text-xs">AXION</div>
+        <div className="h-14 w-14 bg-white p-2 rounded-2xl shadow-xl flex items-center justify-center">
+          <img src={AxionLogo} alt="Axion Logo" className="max-h-full object-contain" />
+        </div>
         <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa v6.1</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">AXION Crespo — A y A Jacob S.R.L.</p></div>
       </header>
       <main className="flex-grow flex items-center justify-center p-6 text-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
           {[ 
-            { id: 'playa', label: 'Playa / Tanques', img: PlayaIcon, fallback: '⛽' }, 
-            { id: 'spot', label: 'Spot / Ventas', img: SpotIcon, fallback: '☕' }, 
-            { id: 'gerencia', label: 'Gerencia', img: AxionLogo, fallback: '⚙️' } 
+            { id: 'playa', label: 'Playa', img: PlayaIcon, fallback: '⛽' }, 
+            { id: 'spot', label: 'Spot!', img: SpotIcon, fallback: '☕' }, 
+            { id: 'gerencia', label: 'Gerencia', img: GerenciaLogo, fallback: '⚙️' } 
           ].map(m => (
             <div key={m.id} onClick={() => setTargetModulo(m.id)} className="bg-white p-12 rounded-[3.5rem] shadow-2xl cursor-pointer hover:scale-105 transition-all text-center group border-4 border-transparent hover:border-white/50 shadow-pink-900/10">
               <div className="h-28 w-full mx-auto mb-6 flex items-center justify-center">
