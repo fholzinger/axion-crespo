@@ -19,7 +19,8 @@ const formatMonthDisplay = (yyyyMm: string) => { if (!yyyyMm) return ''; const [
 const formatDateDisplay = (isoDate: string) => { if (!isoDate) return ''; const [y, m, d] = isoDate.split('-'); return `${d}/${m}/${y}`; };
 const getYesterdayISOString = () => {
   const today = new Date();
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
   return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 };
 
@@ -199,9 +200,18 @@ const RRHHView = () => {
         <div className="bg-white p-6 rounded-2xl border relative animate-in zoom-in-95 shadow-md">
           <button onClick={() => setSubPantalla(null)} className="absolute top-4 right-4 text-slate-300"><X className="w-5 h-5"/></button>
           {subPantalla === 'vacaciones' && <div className="space-y-3">
+            {/* LEYENDA DE ADVERTENCIA PARA VACACIONES */}
+            <div className="bg-sky-50 border border-sky-200 text-sky-800 p-4 rounded-xl text-xs font-medium leading-relaxed mb-4">
+              <span className="font-black block mb-1">Ingresa tu solicitud de vacaciones.</span>
+              La misma será evaluada y resuelta en las próximas 24 hs.<br/>
+              <span className="text-rose-600 font-black mt-2 block">ATENCIÓN:</span> El simple ingreso de la solicitud no significa la aprobación de la misma.
+            </div>
+            
+            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Inicio</label>
             <input type="date" className="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm text-slate-700" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Fin</label>
             <input type="date" className="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm text-slate-700" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
-            <button onClick={() => enviar("VACACIONES", `Del ${fechaDesde} al ${fechaHasta}`)} className="w-full bg-[#E20074] text-white py-3 rounded-xl font-black uppercase text-xs">Enviar Solicitud</button>
+            <button onClick={() => enviar("VACACIONES", `Del ${fechaDesde} al ${fechaHasta}`)} className="w-full bg-[#E20074] text-white py-3 rounded-xl font-black uppercase text-xs mt-2">Enviar Solicitud</button>
           </div>}
           {subPantalla === 'medico' && <div className="space-y-3 text-center">
             <input type="file" accept="image/*" ref={fileRef} className="hidden" onChange={(e) => {
@@ -1206,7 +1216,7 @@ function Home() {
       )}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20 py-8 px-10 flex items-center gap-4 shadow-xl">
         <div className="h-14 w-14 bg-white p-2 rounded-2xl shadow-xl flex items-center justify-center font-black italic text-pink-600 text-xs">AXION</div>
-        <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa v6.0</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">AXION Crespo — A y A Jacob S.R.L.</p></div>
+        <div><h1 className="text-2xl font-black uppercase italic leading-none text-white tracking-tighter">Gestión Operativa v6.1</h1><p className="text-white/80 text-[9px] font-bold uppercase tracking-widest mt-1 italic">AXION Crespo — A y A Jacob S.R.L.</p></div>
       </header>
       <main className="flex-grow flex items-center justify-center p-6 text-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
